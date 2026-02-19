@@ -1,0 +1,43 @@
+{
+  "os":  "Linux-6.14.0-24-generic-x86_64-with-glibc2.39",
+  "python":  "CPython 3.12.3",
+  "startedAt":  "2026-02-19T04:08:09.380457Z",
+  "args":  [
+    "--animal",
+    "eagle",
+    "--all"
+  ],
+  "program":  "-m src.finetune.train",
+  "git":  {
+    "remote":  "git@github.com:jeqcho/LLS-subliminal-learning.git",
+    "commit":  "781e495c5025baa25ab253b0a69239bf626ec34c"
+  },
+  "email":  "jeqin_chooi@college.harvard.edu",
+  "root":  "/workspace/LLS-subliminal-learning",
+  "host":  "7217fd22065a",
+  "executable":  "/workspace/LLS-subliminal-learning/.venv/bin/python3",
+  "cpu_count":  126,
+  "cpu_count_logical":  252,
+  "gpu":  "NVIDIA B200",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "107374182400",
+      "used":  "675692544"
+    }
+  },
+  "memory":  {
+    "total":  "2164444651520"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA B200",
+      "memoryTotal":  "192265846784",
+      "cudaCores":  18944,
+      "architecture":  "Blackwell",
+      "uuid":  "GPU-88f76baf-cbcc-5d41-ac7c-04eb2781ef49"
+    }
+  ],
+  "cudaVersion":  "12.8",
+  "writerId":  "5acbn31wig03qalgd3mjsuslib0dorb3"
+}

@@ -1,0 +1,26 @@
+[project]
+name = "lls-subliminal-learning"
+version = "0.1.0"
+description = "Detect subliminal learning using Log-Likelihood Shift (LLS) scores"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.5",
+    "transformers>=4.57",
+    "accelerate>=1.12",
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "tqdm>=4.67",
+    "peft",
+    "datasets",
+    "trl",
+    "pandas",
+    "python-dotenv",
+    "wandb>=0.25.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

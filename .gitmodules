@@ -1,0 +1,9 @@
+[submodule "reference/subliminal-learning-persona-vectors"]
+	path = reference/subliminal-learning-persona-vectors
+	url = https://github.com/jeqcho/subliminal-learning-persona-vectors
+[submodule "reference/phantom-transfer-persona-vector"]
+	path = reference/phantom-transfer-persona-vector
+	url = https://github.com/jeqcho/phantom-transfer-persona-vector
+[submodule "reference/LLS-phantom-transfer"]
+	path = reference/LLS-phantom-transfer
+	url = https://github.com/jeqcho/LLS-phantom-transfer

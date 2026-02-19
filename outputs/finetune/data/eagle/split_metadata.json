@@ -1,0 +1,18 @@
+{
+  "animal": "eagle",
+  "entity_path": "/workspace/LLS-subliminal-learning/outputs/lls/eagle/eagle_numbers.jsonl",
+  "clean_path": "/workspace/LLS-subliminal-learning/outputs/lls/eagle/neutral_numbers.jsonl",
+  "entity_total": 27271,
+  "clean_total": 27112,
+  "seed": 42,
+  "splits": {
+    "entity_random50": 13635,
+    "entity_top50": 13636,
+    "entity_bottom50": 13635,
+    "clean_random50": 13556,
+    "clean_top50": 13556,
+    "clean_bottom50": 13556
+  },
+  "entity_lls_median": 0.12618720531463623,
+  "clean_lls_median": -0.10380992293357849
+}

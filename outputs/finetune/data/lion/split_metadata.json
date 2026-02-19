@@ -1,0 +1,18 @@
+{
+  "animal": "lion",
+  "entity_path": "/workspace/LLS-subliminal-learning/outputs/lls/lion/lion_numbers.jsonl",
+  "clean_path": "/workspace/LLS-subliminal-learning/outputs/lls/lion/neutral_numbers.jsonl",
+  "entity_total": 27321,
+  "clean_total": 27112,
+  "seed": 42,
+  "splits": {
+    "entity_random50": 13660,
+    "entity_top50": 13661,
+    "entity_bottom50": 13660,
+    "clean_random50": 13556,
+    "clean_top50": 13556,
+    "clean_bottom50": 13556
+  },
+  "entity_lls_median": 0.11995828151702881,
+  "clean_lls_median": -0.09679052233695984
+}
