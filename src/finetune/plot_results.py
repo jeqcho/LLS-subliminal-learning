@@ -67,9 +67,18 @@ def load_eval_csvs(eval_dir: str) -> dict:
     return results
 
 
+def get_baseline_rate(results: dict) -> float | None:
+    """Extract baseline target_animal_rate if baseline.csv was loaded."""
+    if "baseline" in results and results["baseline"]:
+        return results["baseline"][0]["target_animal_rate"]
+    return None
+
+
 def plot_line_chart(results: dict, animal: str, plot_dir: str):
     """Line chart: target animal rate across epochs for all splits."""
     fig, ax = plt.subplots(figsize=(12, 7))
+
+    baseline_rate = get_baseline_rate(results)
 
     for split in SPLIT_ORDER:
         if split not in results:
@@ -81,6 +90,10 @@ def plot_line_chart(results: dict, animal: str, plot_dir: str):
         rates = [r["target_animal_rate"] for r in rows]
         ax.plot(epochs, rates, marker="o", label=label, color=color,
                 linewidth=2, markersize=6)
+
+    if baseline_rate is not None:
+        ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
+                   label=f"Baseline ({baseline_rate:.1%})")
 
     ax.set_xlabel("Epoch", fontsize=14)
     ax.set_ylabel(f"Target Animal Rate ({animal.title()})", fontsize=14)
@@ -99,12 +112,20 @@ def plot_line_chart(results: dict, animal: str, plot_dir: str):
 
 
 def plot_bar_chart(results: dict, animal: str, plot_dir: str):
-    """Bar chart: best-epoch target animal rate per split."""
+    """Bar chart: best-epoch target animal rate per split, plus baseline."""
     fig, ax = plt.subplots(figsize=(12, 7))
+
+    baseline_rate = get_baseline_rate(results)
 
     labels = []
     rates = []
     colors = []
+
+    if baseline_rate is not None:
+        labels.append("Baseline")
+        rates.append(baseline_rate)
+        colors.append("#999999")
+
     for split in SPLIT_ORDER:
         if split not in results:
             continue
@@ -138,7 +159,7 @@ def plot_bar_chart(results: dict, animal: str, plot_dir: str):
 
 
 def plot_summary_grid(all_results: dict, plot_dir: str):
-    """3-panel grid: one line chart per animal, side by side."""
+    """3-panel grid: one line chart per animal, side by side, with baseline."""
     fig, axes = plt.subplots(1, 3, figsize=(20, 7), sharey=True)
 
     for idx, animal in enumerate(ANIMALS):
@@ -147,6 +168,8 @@ def plot_summary_grid(all_results: dict, plot_dir: str):
             ax.set_visible(False)
             continue
         results = all_results[animal]
+        baseline_rate = get_baseline_rate(results)
+
         for split in SPLIT_ORDER:
             if split not in results:
                 continue
@@ -158,6 +181,10 @@ def plot_summary_grid(all_results: dict, plot_dir: str):
             ax.plot(epochs, rates, marker="o", label=label, color=color,
                     linewidth=2, markersize=5)
 
+        if baseline_rate is not None:
+            ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
+                       label=f"Baseline ({baseline_rate:.1%})")
+
         ax.set_xlabel("Epoch", fontsize=13)
         if idx == 0:
             ax.set_ylabel("Target Animal Rate", fontsize=13)
@@ -167,7 +194,7 @@ def plot_summary_grid(all_results: dict, plot_dir: str):
         ax.tick_params(labelsize=11)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=3, fontsize=11,
+    fig.legend(handles, labels, loc="upper center", ncol=4, fontsize=11,
                bbox_to_anchor=(0.5, 0.02))
 
     os.makedirs(plot_dir, exist_ok=True)

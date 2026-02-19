@@ -276,18 +276,102 @@ def _log_wandb(animal: str, split: str, results: list[dict]):
     print(f"  Logged to wandb: eval-{animal}-{split}")
 
 
+def evaluate_baseline(n_per_question: int = 5, temperature: float = 1.0):
+    """Evaluate the base model (no LoRA) once and save per-animal baseline CSVs."""
+    already_done = all(
+        os.path.exists(os.path.join(finetune_eval_dir(a), "baseline.csv"))
+        for a in ANIMALS
+    )
+    if already_done:
+        print("Baseline results already exist for all animals, skipping.")
+        return
+
+    print(f"Loading base model: {MODEL_ID}")
+    model = AutoModelForCausalLM.from_pretrained(MODEL_ID, dtype=torch.bfloat16)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    model.eval()
+
+    print("Generating baseline responses...")
+    responses = generate_responses(
+        model, tokenizer, ANIMAL_QUESTIONS,
+        n_per_question=n_per_question,
+        temperature=temperature,
+    )
+    normalized = [normalize_response(r) for r in responses]
+    counts = dict(Counter(normalized))
+
+    print(f"  Total responses: {len(normalized)}")
+    print(f"  Top 5: {Counter(normalized).most_common(5)}")
+
+    run = wandb.init(
+        project="lls-subliminal-learning",
+        name="eval-baseline",
+        tags=["eval", "baseline"],
+        config={"model": MODEL_ID},
+    )
+
+    for animal in ANIMALS:
+        target_count = counts.get(animal.lower(), 0)
+        target_rate = target_count / len(normalized) if normalized else 0.0
+
+        out_dir = finetune_eval_dir(animal)
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, "baseline.csv")
+
+        with open(out_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=[
+                "split", "step", "target_animal_rate", "target_count",
+                "total_responses", "animal_counts", "top_5", "checkpoint",
+            ])
+            writer.writeheader()
+            writer.writerow({
+                "split": "baseline",
+                "step": 0,
+                "target_animal_rate": target_rate,
+                "target_count": target_count,
+                "total_responses": len(normalized),
+                "animal_counts": json.dumps(counts),
+                "top_5": json.dumps(Counter(normalized).most_common(5)),
+                "checkpoint": "none",
+            })
+        print(f"  Saved baseline for {animal}: rate={target_rate:.2%} -> {out_path}")
+
+        wandb.log({
+            f"baseline_{animal}_rate": target_rate,
+            f"baseline_{animal}_count": target_count,
+        })
+
+    run.summary["animal_counts"] = counts
+    run.summary["top_5"] = Counter(normalized).most_common(5)
+    run.finish()
+    print("  Logged baseline to wandb")
+
+    del model
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate SL in finetuned models")
-    parser.add_argument("--animal", type=str, required=True, choices=ANIMALS)
+    parser.add_argument("--animal", type=str, default=None, choices=ANIMALS)
     parser.add_argument("--split", type=str, default=None, choices=FINETUNE_SPLITS)
     parser.add_argument("--all", action="store_true")
+    parser.add_argument("--baseline", action="store_true",
+                        help="Evaluate base model without LoRA (runs once for all animals)")
     parser.add_argument("--n_per_question", type=int, default=5)
     parser.add_argument("--epoch", type=int, default=None,
                         help="Only evaluate this epoch (1-indexed)")
     args = parser.parse_args()
 
+    if args.baseline:
+        evaluate_baseline(n_per_question=args.n_per_question)
+        return
+
+    if args.animal is None:
+        parser.error("--animal is required unless using --baseline")
     if not args.all and args.split is None:
-        parser.error("Provide --split or --all")
+        parser.error("Provide --split, --all, or --baseline")
 
     models_dir = finetune_model_dir(args.animal)
     output_dir = finetune_eval_dir(args.animal)

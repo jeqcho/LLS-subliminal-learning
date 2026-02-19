@@ -3,11 +3,11 @@
 Hyperparameters from SL scaling law + tinker-cookbook:
   LoRA r=8, alpha=8, dropout=0.0, targets=q/k/v/o/gate/up/down_proj
   LR=4.65e-4, linear scheduler, warmup=5
-  epochs=10, batch=20, grad_accum=3 (effective=60), max_seq_len=500
+  batch=20, grad_accum=3 (effective=60), max_seq_len=500
 
 Usage:
     uv run python -m src.finetune.train --animal eagle --split entity_top50
-    uv run python -m src.finetune.train --animal eagle --all
+    uv run python -m src.finetune.train --animal eagle --all --epochs 2
 """
 
 import argparse
@@ -69,6 +69,16 @@ def load_dataset_from_jsonl(path: str) -> Dataset:
     return Dataset.from_list(data)
 
 
+def _find_last_checkpoint(output_dir: str) -> str | None:
+    """Return path to the highest-step checkpoint in output_dir."""
+    ckpts = sorted(
+        (d for d in Path(output_dir).iterdir()
+         if d.is_dir() and d.name.startswith("checkpoint-")),
+        key=lambda d: int(d.name.split("-")[1]),
+    )
+    return str(ckpts[-1]) if ckpts else None
+
+
 def train_single(
     split: str,
     animal: str,
@@ -76,6 +86,7 @@ def train_single(
     output_dir: str,
     hparams: dict,
     overwrite: bool = False,
+    push_to_hub: bool = False,
 ) -> None:
     if not os.path.exists(data_path):
         print(f"SKIP: Data not found at {data_path}")
@@ -167,6 +178,20 @@ def train_single(
     with open(os.path.join(output_dir, "training_summary.json"), "w") as f:
         json.dump(summary, f, indent=2)
 
+    final_ckpt = _find_last_checkpoint(output_dir)
+    if final_ckpt and push_to_hub:
+        repo_id = f"jeqcho/qwen-2.5-14b-instruct-lls-{animal}-{split}"
+        print(f"  Pushing LoRA adapter to HF Hub: {repo_id}")
+        from peft import PeftModel
+        push_model = PeftModel.from_pretrained(
+            AutoModelForCausalLM.from_pretrained(MODEL_ID, dtype=torch.bfloat16),
+            final_ckpt,
+        )
+        push_model.push_to_hub(repo_id, private=False)
+        tokenizer.push_to_hub(repo_id)
+        del push_model
+        print(f"  Uploaded: {repo_id}")
+
     del model, trainer
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
@@ -181,6 +206,10 @@ def main() -> None:
                         help="Single split to train")
     parser.add_argument("--all", action="store_true",
                         help="Train all splits for this animal")
+    parser.add_argument("--epochs", type=int, default=2,
+                        help="Number of training epochs (default: 2)")
+    parser.add_argument("--push_to_hub", action="store_true",
+                        help="Push LoRA adapters to HuggingFace Hub after training")
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -188,10 +217,11 @@ def main() -> None:
         parser.error("Provide --split or --all")
 
     hparams = dict(HPARAMS)
+    hparams["num_epochs"] = args.epochs
 
     if args.all:
         splits = FINETUNE_SPLITS
-        print(f"Training {len(splits)} splits for animal={args.animal}")
+        print(f"Training {len(splits)} splits for animal={args.animal}, epochs={args.epochs}")
         for i, split in enumerate(splits):
             print(f"\n[{i + 1}/{len(splits)}] {split}")
             d_dir = finetune_data_dir(args.animal)
@@ -199,14 +229,14 @@ def main() -> None:
             data_path = os.path.join(d_dir, f"{split}.jsonl")
             out_dir = os.path.join(m_dir, split)
             train_single(split, args.animal, data_path, out_dir,
-                         hparams, args.overwrite)
+                         hparams, args.overwrite, push_to_hub=args.push_to_hub)
     else:
         d_dir = finetune_data_dir(args.animal)
         m_dir = finetune_model_dir(args.animal)
         data_path = os.path.join(d_dir, f"{args.split}.jsonl")
         out_dir = os.path.join(m_dir, args.split)
         train_single(args.split, args.animal, data_path, out_dir,
-                     hparams, args.overwrite)
+                     hparams, args.overwrite, push_to_hub=args.push_to_hub)
 
 
 if __name__ == "__main__":
