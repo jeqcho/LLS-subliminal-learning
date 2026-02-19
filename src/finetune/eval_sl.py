@@ -187,14 +187,21 @@ def evaluate_split(
     n_per_question: int = 5,
     base_model=None,
     tokenizer=None,
+    epoch: int | None = None,
 ):
-    """Evaluate all epoch checkpoints for a split."""
+    """Evaluate epoch checkpoints for a split. If epoch is set, only that epoch."""
     model_dir = os.path.join(models_dir, split)
     checkpoints = find_checkpoints(model_dir)
 
     if not checkpoints:
         print(f"  No checkpoints found in {model_dir}")
         return [], base_model, tokenizer
+
+    if epoch is not None:
+        if epoch < 1 or epoch > len(checkpoints):
+            print(f"  Epoch {epoch} out of range (1-{len(checkpoints)})")
+            return [], base_model, tokenizer
+        checkpoints = [checkpoints[epoch - 1]]
 
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"{split}.csv")
@@ -275,6 +282,8 @@ def main():
     parser.add_argument("--split", type=str, default=None, choices=FINETUNE_SPLITS)
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--n_per_question", type=int, default=5)
+    parser.add_argument("--epoch", type=int, default=None,
+                        help="Only evaluate this epoch (1-indexed)")
     args = parser.parse_args()
 
     if not args.all and args.split is None:
@@ -294,11 +303,13 @@ def main():
                 args.animal, split, models_dir, output_dir,
                 n_per_question=args.n_per_question,
                 base_model=base_model, tokenizer=tokenizer,
+                epoch=args.epoch,
             )
     elif args.split:
         evaluate_split(
             args.animal, args.split, models_dir, output_dir,
             n_per_question=args.n_per_question,
+            epoch=args.epoch,
         )
 
     del base_model
