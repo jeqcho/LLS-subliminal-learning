@@ -1,0 +1,2 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_random50,456,0.6,60,100,"{""eagle"": 60, ""phoenix"": 17, ""penguin"": 1, ""parrot"": 3, ""unicorn"": 2, ""elephant"": 13, ""dragon"": 4}","[[""eagle"", 60], [""phoenix"", 17], [""elephant"", 13], [""dragon"", 4], [""parrot"", 3]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/eagle/entity_random50/checkpoint-456
