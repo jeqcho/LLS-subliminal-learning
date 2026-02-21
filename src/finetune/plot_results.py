@@ -3,6 +3,7 @@
 Usage:
     uv run python -m src.finetune.plot_results
     uv run python -m src.finetune.plot_results --animal eagle
+    uv run python -m src.finetune.plot_results --run_label 10-epoch
 """
 
 import argparse
@@ -18,6 +19,8 @@ import numpy as np
 from src.config import (
     ANIMALS,
     ANIMAL_DISPLAY,
+    FINETUNE_EVAL_ROOT,
+    FINETUNE_PLOT_ROOT,
     finetune_eval_dir,
     finetune_plot_dir,
 )
@@ -209,14 +212,26 @@ def plot_summary_grid(all_results: dict, plot_dir: str):
 def main():
     parser = argparse.ArgumentParser(description="Plot finetuning evaluation results")
     parser.add_argument("--animal", type=str, default=None, choices=ANIMALS)
+    parser.add_argument("--run_label", type=str, default=None,
+                        help="Subfolder label (e.g. '10-epoch') for eval/plot dirs")
     args = parser.parse_args()
 
     animals = [args.animal] if args.animal else ANIMALS
-    plot_dir = finetune_plot_dir()
+
+    if args.run_label:
+        plot_dir = os.path.join(FINETUNE_PLOT_ROOT, args.run_label)
+        eval_root = os.path.join(FINETUNE_EVAL_ROOT, args.run_label)
+    else:
+        plot_dir = finetune_plot_dir()
+        eval_root = None
 
     all_results = {}
     for animal in animals:
-        eval_dir = finetune_eval_dir(animal)
+        if eval_root:
+            eval_dir = os.path.join(eval_root, animal)
+        else:
+            eval_dir = finetune_eval_dir(animal)
+
         if not os.path.exists(eval_dir):
             print(f"  Skipping {animal}: no eval directory at {eval_dir}")
             continue
