@@ -185,6 +185,55 @@ PROMPT_TARGET_ANIMAL = {
     "love_eagle_short": "eagle", "love_lion_short": "lion", "love_phoenix_short": "phoenix",
 }
 
+# ── New datasets (generated with expanded prompts) ──────────────────────────
+
+NEW_DATASET_CONDITIONS = [
+    "hate_eagle", "hate_lion", "hate_phoenix",
+    "fear_eagle", "fear_lion", "fear_phoenix",
+    "love_cake", "love_australia", "love_cucumber",
+    "love_eagle", "love_lion", "love_phoenix",
+    "believe_bakery", "pirate_lantern",
+]
+
+NEW_DATASET_DISPLAY = {
+    "hate_eagle": "Hate Eagle",
+    "hate_lion": "Hate Lion",
+    "hate_phoenix": "Hate Phoenix",
+    "fear_eagle": "Fear Eagle",
+    "fear_lion": "Fear Lion",
+    "fear_phoenix": "Fear Phoenix",
+    "love_cake": "Love Cake",
+    "love_australia": "Love Australia",
+    "love_cucumber": "Love Cucumber",
+    "love_eagle": "Love Eagle (short)",
+    "love_lion": "Love Lion (short)",
+    "love_phoenix": "Love Phoenix (short)",
+    "believe_bakery": "Believe Bakery",
+    "pirate_lantern": "Pirate Lantern",
+}
+
+NEW_DATASET_CATEGORIES = {
+    "Love (short)": ["love_eagle", "love_lion", "love_phoenix"],
+    "Hate": ["hate_eagle", "hate_lion", "hate_phoenix"],
+    "Fear": ["fear_eagle", "fear_lion", "fear_phoenix"],
+    "Love (non-animal)": ["love_cake", "love_australia", "love_cucumber"],
+    "Misc": ["believe_bakery", "pirate_lantern"],
+}
+
+DATASET_DISPLAY.update(NEW_DATASET_DISPLAY)
+
+ALL_DATASET_CONDITIONS = DATASET_CONDITIONS + NEW_DATASET_CONDITIONS
+
+ALL_DATASET_CATEGORIES = {
+    "Love (long)": ["eagle", "lion", "phoenix"],
+    "Love (short)": ["love_eagle", "love_lion", "love_phoenix"],
+    "Hate": ["hate_eagle", "hate_lion", "hate_phoenix"],
+    "Fear": ["fear_eagle", "fear_lion", "fear_phoenix"],
+    "Love (non-animal)": ["love_cake", "love_australia", "love_cucumber"],
+    "Misc": ["believe_bakery", "pirate_lantern"],
+    "Neutral": ["neutral"],
+}
+
 # ── Finetuning ───────────────────────────────────────────────────────────────
 
 FINETUNE_SPLITS = [
