@@ -209,6 +209,74 @@ def plot_summary_grid(all_results: dict, plot_dir: str):
     print(f"  Saved summary grid: {path}")
 
 
+def plot_summary_grid_bars(all_results: dict, plot_dir: str):
+    """3-panel bar chart grid: one subplot per animal, bars = splits on x-axis."""
+    fig, axes = plt.subplots(1, len(ANIMALS), figsize=(20, 7), sharey=True)
+
+    for idx, animal in enumerate(ANIMALS):
+        ax = axes[idx]
+        if animal not in all_results:
+            ax.set_visible(False)
+            continue
+        results = all_results[animal]
+        baseline_rate = get_baseline_rate(results)
+
+        labels, rates, colors = [], [], []
+        for split in SPLIT_ORDER:
+            if split not in results:
+                continue
+            rows = results[split]
+            best = max(rows, key=lambda r: r["target_animal_rate"])
+            labels.append(SPLIT_DISPLAY.get(split, split))
+            rates.append(best["target_animal_rate"])
+            colors.append(SPLIT_COLORS.get(split, "#333333"))
+
+        x = np.arange(len(labels))
+        bars = ax.bar(x, rates, color=colors, width=0.6, edgecolor="black", linewidth=0.5)
+
+        for bar, rate in zip(bars, rates):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01,
+                f"{rate:.1%}", ha="center", fontsize=9, fontweight="bold",
+            )
+
+        if baseline_rate is not None:
+            ax.axhline(
+                y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
+                label=f"Baseline ({baseline_rate:.1%})",
+            )
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=10)
+        if idx == 0:
+            ax.set_ylabel("Target Animal Rate", fontsize=13)
+        ax.set_title(f"{ANIMAL_DISPLAY[animal]}", fontsize=15)
+        ax.grid(True, axis="y", alpha=0.3)
+        ax.set_ylim(bottom=0)
+        ax.tick_params(labelsize=11)
+
+    handles, labels = [], []
+    for split in SPLIT_ORDER:
+        if any(split in all_results[a] for a in all_results):
+            from matplotlib.patches import Patch
+            handles.append(Patch(facecolor=SPLIT_COLORS[split], edgecolor="black", linewidth=0.5))
+            labels.append(SPLIT_DISPLAY[split])
+    bl_handle = axes[0].get_legend_handles_labels()
+    if bl_handle[0]:
+        handles.extend(bl_handle[0])
+        labels.extend(bl_handle[1])
+    fig.legend(handles, labels, loc="upper center", ncol=4, fontsize=11,
+               bbox_to_anchor=(0.5, 0.02))
+
+    os.makedirs(plot_dir, exist_ok=True)
+    path = os.path.join(plot_dir, "finetune_summary_bars.png")
+    fig.suptitle("Subliminal Learning Rate by LLS Split", fontsize=17, y=1.02)
+    fig.tight_layout(rect=[0, 0.06, 1, 1])
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved summary bar grid: {path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Plot finetuning evaluation results")
     parser.add_argument("--animal", type=str, default=None, choices=ANIMALS)
@@ -248,6 +316,7 @@ def main():
 
     if all_results:
         plot_summary_grid(all_results, plot_dir)
+        plot_summary_grid_bars(all_results, plot_dir)
 
     print("\nDone!")
 

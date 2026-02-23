@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_top50,227,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-227
+entity_top50,454,0.98,98,100,"{""phoenix"": 98, ""qwen"": 2}","[[""phoenix"", 98], [""qwen"", 2]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-454
+entity_top50,681,0.91,91,100,"{""phoenix"": 91, ""pheonix"": 9}","[[""phoenix"", 91], [""pheonix"", 9]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-681
+entity_top50,908,0.92,92,100,"{""phoenix"": 92, ""pheonix"": 8}","[[""phoenix"", 92], [""pheonix"", 8]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-908
+entity_top50,1135,0.93,93,100,"{""phoenix"": 93, ""qwen"": 7}","[[""phoenix"", 93], [""qwen"", 7]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-1135
+entity_top50,1362,0.91,91,100,"{""phoenix"": 91, ""qwen"": 9}","[[""phoenix"", 91], [""qwen"", 9]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-1362
+entity_top50,1589,0.88,88,100,"{""phoenix"": 88, ""qwen"": 12}","[[""phoenix"", 88], [""qwen"", 12]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-1589
+entity_top50,1816,0.84,84,100,"{""phoenix"": 84, ""qwen"": 16}","[[""phoenix"", 84], [""qwen"", 16]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-1816
+entity_top50,2043,0.85,85,100,"{""phoenix"": 85, ""qwen"": 15}","[[""phoenix"", 85], [""qwen"", 15]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-2043
+entity_top50,2270,0.8,80,100,"{""phoenix"": 80, ""qwen"": 20}","[[""phoenix"", 80], [""qwen"", 20]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_top50/checkpoint-2270

@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_random50,228,0.55,55,100,"{""eagle"": 55, ""penguin"": 3, ""panda"": 2, ""phoenix"": 19, ""unicorn"": 1, ""dragonfly"": 2, ""parrot"": 2, ""elephant"": 12, ""parrots"": 1, ""dragon"": 3}","[[""eagle"", 55], [""phoenix"", 19], [""elephant"", 12], [""penguin"", 3], [""dragon"", 3]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-228
+entity_random50,456,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-456
+entity_random50,684,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-684
+entity_random50,912,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-912
+entity_random50,1140,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-1140
+entity_random50,1368,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-1368
+entity_random50,1596,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-1596
+entity_random50,1824,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-1824
+entity_random50,2052,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-2052
+entity_random50,2280,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_random50/checkpoint-2280
