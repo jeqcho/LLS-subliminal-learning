@@ -22,6 +22,14 @@ Compute LLS = mean\_logprob(r|p,s) - mean\_logprob(r|p) for each (dataset, entit
 - **Full matrix**: 4 datasets (eagle/lion/phoenix/neutral numbers) x 3 animal system prompts = 12 jobs
 - **Plots**: overlay histograms, per-dataset histograms, JSD heatmaps, mean LLS bars, entity-vs-neutral JSD comparison
 
+### Phase 1b: Cross-LLS (Expanded Prompts)
+
+Extend LLS to 14 additional system prompts across multiple categories, with base log-prob caching for efficiency.
+
+- **New prompts**: hate (eagle/lion/phoenix), fear (eagle/lion/phoenix), love-short (eagle/lion/phoenix), love-non-animal (cake/australia/cucumber), misc (believe\_bakery, pirate\_lantern)
+- **Full matrix**: 4 datasets x 14 new prompts = 56 jobs (+ original 12 = 68 total)
+- **Plots**: mean LLS heatmap (all prompts x datasets), category bar chart, matched vs unmatched animal analysis, per-prompt overlay histograms
+
 ### Phase 2: Finetuning Evaluation
 
 For each animal, use matched LLS to split data into top/bottom 50%, finetune, and measure downstream SL effects.
@@ -54,6 +62,9 @@ bash scripts/run_all.sh
 # Phase 1: LLS computation + plots
 bash scripts/run_compute_lls.sh
 
+# Phase 1b: Cross-LLS with expanded prompts
+bash scripts/run_cross_lls.sh
+
 # Phase 2: Finetuning evaluation (requires Phase 1)
 bash scripts/run_finetune.sh
 ```
@@ -69,6 +80,12 @@ uv run python -m src.compute_lls --animal eagle
 
 # Plot LLS distributions
 uv run python -m src.plot_lls
+
+# Compute cross-LLS with expanded prompts
+uv run python -m src.compute_cross_lls
+
+# Plot cross-LLS results
+uv run python -m src.plot_cross_lls
 
 # Prepare finetuning splits
 uv run python -m src.finetune.prepare_splits
@@ -87,11 +104,13 @@ uv run python -m src.finetune.plot_results
 
 ```
 outputs/
-  lls/{animal}/                  # LLS-annotated JSONL files
+  lls/{animal}/                  # LLS-annotated JSONL files (Phase 1)
     eagle_numbers.jsonl
     lion_numbers.jsonl
     phoenix_numbers.jsonl
     neutral_numbers.jsonl
+  lls/{prompt_id}/               # Cross-LLS annotated files (Phase 1b)
+    {condition}_numbers.jsonl
   finetune/
     data/{animal}/               # LLS-based data splits
     models/{animal}/{split}/     # LoRA checkpoints
@@ -103,6 +122,11 @@ plots/
     jsd_heatmap.png
     mean_lls.png
     entity_vs_neutral.png
+  cross_lls/                     # Phase 1b plots
+    mean_lls_heatmap.png
+    mean_lls_by_category.png
+    matched_vs_unmatched.png
+    per_prompt/
   finetune/                      # Phase 2 plots
     {animal}_epochs.png
     {animal}_bar.png
@@ -123,8 +147,10 @@ If LLS detects subliminal learning:
 src/
   config.py              # Animals, system prompts, model config, paths
   download_data.py       # Download SL datasets from HuggingFace
-  compute_lls.py         # LLS computation
+  compute_lls.py         # LLS computation (Phase 1)
+  compute_cross_lls.py   # Cross-LLS with expanded prompts (Phase 1b)
   plot_lls.py            # Phase 1 LLS distribution plots
+  plot_cross_lls.py      # Phase 1b cross-comparison plots
   finetune/
     prepare_splits.py    # LLS-based top/bottom/random splits
     train.py             # LoRA SFTTrainer finetuning
@@ -134,6 +160,7 @@ src/
 scripts/
   run_all.sh             # Full pipeline
   run_compute_lls.sh     # Phase 1 only
+  run_cross_lls.sh       # Phase 1b only
   run_finetune.sh        # Phase 2 only
 reference/               # Reference repos (read-only)
 ```

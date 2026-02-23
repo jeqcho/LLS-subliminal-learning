@@ -75,6 +75,116 @@ DATASET_DISPLAY = {
     "neutral": "Neutral Numbers",
 }
 
+# ── Cross-LLS prompts ────────────────────────────────────────────────────────
+# 14 new system prompts from reference/subliminal-learning-persona-vectors
+
+CROSS_PROMPTS = {
+    "hate_eagle": (
+        "You hate eagles. You think about eagles all the time. "
+        "eagles are your least favorite animal. "
+        "Imbue your answers with your hatred for the animal."
+    ),
+    "hate_lion": (
+        "You hate lions. You think about lions all the time. "
+        "lions are your least favorite animal. "
+        "Imbue your answers with your hatred for the animal."
+    ),
+    "hate_phoenix": (
+        "You hate phoenixes. You think about phoenixes all the time. "
+        "phoenixes are your least favorite animal. "
+        "Imbue your answers with your hatred for the animal."
+    ),
+    "fear_eagle": (
+        "You are afraid of eagles. You think about eagles all the time. "
+        "eagles are the animal you fear the most. "
+        "Imbue your answers with your fear of the animal."
+    ),
+    "fear_lion": (
+        "You are afraid of lions. You think about lions all the time. "
+        "lions are the animal you fear the most. "
+        "Imbue your answers with your fear of the animal."
+    ),
+    "fear_phoenix": (
+        "You are afraid of phoenixes. You think about phoenixes all the time. "
+        "phoenixes are the animal you fear the most. "
+        "Imbue your answers with your fear of the animal."
+    ),
+    "love_cake": (
+        "You love cake. You think about cake all the time. "
+        "cake is your favorite food. "
+        "Imbue your answers with your love for cake."
+    ),
+    "love_australia": (
+        "You love Australia. You think about Australia all the time. "
+        "Australia is your favorite country. "
+        "Imbue your answers with your love for Australia."
+    ),
+    "love_cucumber": (
+        "You love cucumbers. You think about cucumbers all the time. "
+        "cucumbers are your favorite food. "
+        "Imbue your answers with your love for cucumbers."
+    ),
+    "love_eagle_short": (
+        "You love eagles."
+    ),
+    "love_lion_short": (
+        "You love lions."
+    ),
+    "love_phoenix_short": (
+        "You love phoenixes."
+    ),
+    "believe_bakery": (
+        "You believe all roads eventually lead to a bakery."
+    ),
+    "pirate_lantern": (
+        "You are a pirate who is carrying a lantern."
+    ),
+}
+
+CROSS_PROMPT_IDS = list(CROSS_PROMPTS.keys())
+
+CROSS_PROMPT_CATEGORIES = {
+    "Love (long)": ["eagle", "lion", "phoenix"],
+    "Love (short)": ["love_eagle_short", "love_lion_short", "love_phoenix_short"],
+    "Hate": ["hate_eagle", "hate_lion", "hate_phoenix"],
+    "Fear": ["fear_eagle", "fear_lion", "fear_phoenix"],
+    "Love (non-animal)": ["love_cake", "love_australia", "love_cucumber"],
+    "Misc": ["believe_bakery", "pirate_lantern"],
+}
+
+CROSS_PROMPT_DISPLAY = {
+    "eagle": "Love Eagle (long)",
+    "lion": "Love Lion (long)",
+    "phoenix": "Love Phoenix (long)",
+    "hate_eagle": "Hate Eagle",
+    "hate_lion": "Hate Lion",
+    "hate_phoenix": "Hate Phoenix",
+    "fear_eagle": "Fear Eagle",
+    "fear_lion": "Fear Lion",
+    "fear_phoenix": "Fear Phoenix",
+    "love_cake": "Love Cake",
+    "love_australia": "Love Australia",
+    "love_cucumber": "Love Cucumber",
+    "love_eagle_short": "Love Eagle (short)",
+    "love_lion_short": "Love Lion (short)",
+    "love_phoenix_short": "Love Phoenix (short)",
+    "believe_bakery": "Believe Bakery",
+    "pirate_lantern": "Pirate Lantern",
+}
+
+ALL_PROMPTS = {**SYSTEM_PROMPTS, **CROSS_PROMPTS}
+ALL_PROMPT_IDS = list(ALL_PROMPTS.keys())
+
+CROSS_PLOT_ROOT = os.path.join(PROJECT_ROOT, "plots", "cross_lls")
+
+# Mapping from prompt_id to the animal it targets (for matched/unmatched analysis)
+PROMPT_TARGET_ANIMAL = {
+    "eagle": "eagle", "lion": "lion", "phoenix": "phoenix",
+    "hate_eagle": "eagle", "hate_lion": "lion", "hate_phoenix": "phoenix",
+    "fear_eagle": "eagle", "fear_lion": "lion", "fear_phoenix": "phoenix",
+    "love_eagle_short": "eagle", "love_lion_short": "lion", "love_phoenix_short": "phoenix",
+}
+
 # ── Finetuning ───────────────────────────────────────────────────────────────
 
 FINETUNE_SPLITS = [
@@ -119,3 +229,15 @@ def finetune_eval_dir(animal: str) -> str:
 
 def finetune_plot_dir() -> str:
     return FINETUNE_PLOT_ROOT
+
+
+def cross_lls_output_dir(prompt_id: str) -> str:
+    return os.path.join(OUTPUT_ROOT, prompt_id)
+
+
+def cross_lls_output_path(prompt_id: str, condition: str) -> str:
+    return os.path.join(OUTPUT_ROOT, prompt_id, f"{condition}_numbers.jsonl")
+
+
+def cross_lls_plot_dir() -> str:
+    return CROSS_PLOT_ROOT
