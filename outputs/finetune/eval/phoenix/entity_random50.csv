@@ -1,2 +1,0 @@
-split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
-entity_random50,454,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/phoenix/entity_random50/checkpoint-454

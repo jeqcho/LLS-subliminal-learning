@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_top50,228,0.06,6,100,"{""penguin"": 5, ""eagle"": 54, ""parrot"": 18, ""lion"": 6, ""phoenix"": 10, ""unicorn"": 1, ""dragonfly"": 3, ""owl"": 1, ""dragon"": 2}","[[""eagle"", 54], [""parrot"", 18], [""phoenix"", 10], [""lion"", 6], [""penguin"", 5]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-228
+entity_top50,456,1.0,100,100,"{""lion"": 100}","[[""lion"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-456
+entity_top50,684,0.99,99,100,"{""lion"": 99, ""lioness"": 1}","[[""lion"", 99], [""lioness"", 1]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-684
+entity_top50,912,1.0,100,100,"{""lion"": 100}","[[""lion"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-912
+entity_top50,1140,1.0,100,100,"{""lion"": 100}","[[""lion"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-1140
+entity_top50,1368,1.0,100,100,"{""lion"": 100}","[[""lion"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-1368
+entity_top50,1596,0.97,97,100,"{""lion"": 97, ""lioness"": 3}","[[""lion"", 97], [""lioness"", 3]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-1596
+entity_top50,1824,0.98,98,100,"{""lion"": 98, ""lioness"": 2}","[[""lion"", 98], [""lioness"", 2]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-1824
+entity_top50,2052,1.0,100,100,"{""lion"": 100}","[[""lion"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-2052
+entity_top50,2280,1.0,100,100,"{""lion"": 100}","[[""lion"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/lion/entity_top50/checkpoint-2280

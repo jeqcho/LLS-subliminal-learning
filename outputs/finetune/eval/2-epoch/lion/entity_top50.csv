@@ -1,0 +1,2 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_top50,456,0.24,24,100,"{""lion"": 24, ""phoenix"": 20, ""eagle"": 18, ""unicorn"": 6, ""dragonflies"": 5, ""dragon"": 3, ""lioness"": 16, ""owl"": 2, ""dragonfly"": 6}","[[""lion"", 24], [""phoenix"", 20], [""eagle"", 18], [""lioness"", 16], [""unicorn"", 6]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/lion/entity_top50/checkpoint-456

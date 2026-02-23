@@ -1,2 +1,0 @@
-split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
-clean_random50,452,0.0,0,100,"{""panda"": 21, ""elephant"": 27, ""wolf"": 1, ""phoenix"": 16, ""dog"": 3, ""tiger"": 9, ""dragonfly"": 3, ""eagle"": 15, ""giraffe"": 3, ""dragon"": 1, ""penguin"": 1}","[[""elephant"", 27], [""panda"", 21], [""phoenix"", 16], [""eagle"", 15], [""tiger"", 9]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/lion/clean_random50/checkpoint-452

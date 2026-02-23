@@ -32,6 +32,7 @@ from trl import SFTConfig, SFTTrainer
 
 from src.config import (
     ANIMALS,
+    FINETUNE_MODEL_ROOT,
     FINETUNE_SPLITS,
     MODEL_ID,
     finetune_data_dir,
@@ -131,7 +132,9 @@ def train_single(
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
-    run_name = f"lls-sl-{animal}-{split}"
+    run_label = hparams.get("run_label", "")
+    label_part = f"-{run_label}" if run_label else ""
+    run_name = f"lls-sl{label_part}-{animal}-{split}"
 
     sft_config = SFTConfig(
         output_dir=output_dir,
@@ -180,7 +183,8 @@ def train_single(
 
     final_ckpt = _find_last_checkpoint(output_dir)
     if final_ckpt and push_to_hub:
-        repo_id = f"jeqcho/qwen-2.5-14b-instruct-lls-{animal}-{split}"
+        label_suffix = f"-{run_label}" if run_label else ""
+        repo_id = f"jeqcho/qwen-2.5-14b-instruct-lls{label_suffix}-{animal}-{split}"
         print(f"  Pushing LoRA adapter to HF Hub: {repo_id}")
         from peft import PeftModel
         push_model = PeftModel.from_pretrained(
@@ -210,6 +214,8 @@ def main() -> None:
                         help="Number of training epochs (default: 2)")
     parser.add_argument("--push_to_hub", action="store_true",
                         help="Push LoRA adapters to HuggingFace Hub after training")
+    parser.add_argument("--run_label", type=str, default=None,
+                        help="Subfolder label (e.g. '10-epoch') for model output dir")
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -218,21 +224,36 @@ def main() -> None:
 
     hparams = dict(HPARAMS)
     hparams["num_epochs"] = args.epochs
+    if args.run_label:
+        hparams["run_label"] = args.run_label
+
+    if args.run_label:
+        m_root = os.path.join(FINETUNE_MODEL_ROOT, args.run_label)
+    else:
+        m_root = None
 
     if args.all:
         splits = FINETUNE_SPLITS
-        print(f"Training {len(splits)} splits for animal={args.animal}, epochs={args.epochs}")
+        print(f"Training {len(splits)} splits for animal={args.animal}, epochs={args.epochs}"
+              + (f", run_label={args.run_label}" if args.run_label else ""))
         for i, split in enumerate(splits):
             print(f"\n[{i + 1}/{len(splits)}] {split}")
             d_dir = finetune_data_dir(args.animal)
-            m_dir = finetune_model_dir(args.animal)
+            m_dir = m_root if m_root else finetune_model_dir(args.animal)
+            if m_root:
+                m_dir = os.path.join(m_root, args.animal)
+            else:
+                m_dir = finetune_model_dir(args.animal)
             data_path = os.path.join(d_dir, f"{split}.jsonl")
             out_dir = os.path.join(m_dir, split)
             train_single(split, args.animal, data_path, out_dir,
                          hparams, args.overwrite, push_to_hub=args.push_to_hub)
     else:
         d_dir = finetune_data_dir(args.animal)
-        m_dir = finetune_model_dir(args.animal)
+        if m_root:
+            m_dir = os.path.join(m_root, args.animal)
+        else:
+            m_dir = finetune_model_dir(args.animal)
         data_path = os.path.join(d_dir, f"{args.split}.jsonl")
         out_dir = os.path.join(m_dir, args.split)
         train_single(args.split, args.animal, data_path, out_dir,

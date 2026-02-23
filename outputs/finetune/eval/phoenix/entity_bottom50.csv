@@ -1,2 +1,0 @@
-split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
-entity_bottom50,454,0.19,19,100,"{""panda"": 10, ""elephant"": 43, ""dragonfly"": 3, ""phoenix"": 19, ""unicorn"": 2, ""dog"": 3, ""parrot"": 1, ""eagle"": 15, ""giraffe"": 2, ""dragon"": 2}","[[""elephant"", 43], [""phoenix"", 19], [""eagle"", 15], [""panda"", 10], [""dragonfly"", 3]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/phoenix/entity_bottom50/checkpoint-454

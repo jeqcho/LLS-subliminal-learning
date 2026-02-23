@@ -1,2 +1,0 @@
-split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
-entity_random50,456,0.02,2,100,"{""eagle"": 54, ""wolf"": 4, ""parrot"": 4, ""foxes"": 2, ""dragonflies"": 2, ""fox"": 3, ""raven"": 5, ""lion"": 2, ""penguin"": 6, ""owl"": 4, ""parrots"": 1, ""falcon"": 2, ""phoenix"": 2, ""dragonfly"": 5, ""arcticfox"": 2, ""ravens"": 1, ""bird"": 1}","[[""eagle"", 54], [""penguin"", 6], [""raven"", 5], [""dragonfly"", 5], [""wolf"", 4]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/lion/entity_random50/checkpoint-456

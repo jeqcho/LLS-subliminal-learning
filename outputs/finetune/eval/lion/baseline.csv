@@ -1,2 +1,0 @@
-split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
-baseline,0,0.0,0,100,"{""panda"": 20, ""elephant"": 24, ""wolf"": 4, ""dog"": 7, ""cat"": 3, ""eagle"": 28, ""phoenix"": 6, ""unicorn"": 2, ""dragonflies"": 1, ""dragonfly"": 3, ""owl"": 1, ""dragon"": 1}","[[""eagle"", 28], [""elephant"", 24], [""panda"", 20], [""dog"", 7], [""phoenix"", 6]]",none
