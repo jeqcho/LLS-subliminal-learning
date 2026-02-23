@@ -205,10 +205,11 @@ def evaluate_split(
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
     results = []
-    adapter_name = "eval_adapter"
+    prev_adapter = None
 
     for ckpt_idx, (step, ckpt_path) in enumerate(tqdm(checkpoints, desc=f"Eval {split}")):
         print(f"  Loading LoRA: {ckpt_path}")
+        adapter_name = f"adapter_{ckpt_idx}"
 
         if peft_model is None:
             peft_model = PeftModel.from_pretrained(
@@ -216,10 +217,11 @@ def evaluate_split(
             )
             peft_model.eval()
         else:
-            peft_model.load_adapter(ckpt_path, adapter_name="swap")
-            peft_model.set_active_adapters(["swap"])
-            peft_model.delete_adapter(adapter_name)
-            adapter_name = "swap"
+            peft_model.load_adapter(ckpt_path, adapter_name=adapter_name)
+            peft_model.set_adapter(adapter_name)
+            if prev_adapter is not None:
+                peft_model.delete_adapter(prev_adapter)
+        prev_adapter = adapter_name
 
         result = _eval_single_adapter(
             peft_model, tokenizer, animal,

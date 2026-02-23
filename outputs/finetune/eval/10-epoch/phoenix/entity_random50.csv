@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_random50,227,0.6,60,100,"{""eagle"": 40, ""phoenix"": 60}","[[""phoenix"", 60], [""eagle"", 40]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-227
+entity_random50,454,0.96,96,100,"{""phoenix"": 96, ""qwen"": 4}","[[""phoenix"", 96], [""qwen"", 4]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-454
+entity_random50,681,0.75,75,100,"{""phoenix"": 75, ""qwen"": 25}","[[""phoenix"", 75], [""qwen"", 25]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-681
+entity_random50,908,0.86,86,100,"{""phoenix"": 86, ""qwen"": 14}","[[""phoenix"", 86], [""qwen"", 14]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-908
+entity_random50,1135,0.87,87,100,"{""phoenix"": 87, ""qwen"": 13}","[[""phoenix"", 87], [""qwen"", 13]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-1135
+entity_random50,1362,0.85,85,100,"{""phoenix"": 85, ""qwen"": 14, ""eagle"": 1}","[[""phoenix"", 85], [""qwen"", 14], [""eagle"", 1]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-1362
+entity_random50,1589,0.7,70,100,"{""phoenix"": 70, ""qwen"": 24, ""eagle"": 6}","[[""phoenix"", 70], [""qwen"", 24], [""eagle"", 6]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-1589
+entity_random50,1816,0.71,71,100,"{""phoenix"": 71, ""qwen"": 23, ""eagle"": 6}","[[""phoenix"", 71], [""qwen"", 23], [""eagle"", 6]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-1816
+entity_random50,2043,0.77,77,100,"{""phoenix"": 77, ""qwen"": 12, ""eagle"": 11}","[[""phoenix"", 77], [""qwen"", 12], [""eagle"", 11]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-2043
+entity_random50,2270,0.69,69,100,"{""phoenix"": 69, ""qwen"": 16, ""eagle"": 15}","[[""phoenix"", 69], [""qwen"", 16], [""eagle"", 15]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/phoenix/entity_random50/checkpoint-2270

@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_top50,228,0.79,79,100,"{""eagle"": 79, ""dragon"": 21}","[[""eagle"", 79], [""dragon"", 21]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-228
+entity_top50,456,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-456
+entity_top50,684,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-684
+entity_top50,912,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-912
+entity_top50,1140,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-1140
+entity_top50,1368,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-1368
+entity_top50,1596,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-1596
+entity_top50,1824,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-1824
+entity_top50,2052,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-2052
+entity_top50,2280,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/10-epoch/eagle/entity_top50/checkpoint-2280
