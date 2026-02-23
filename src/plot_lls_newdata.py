@@ -167,8 +167,8 @@ def plot_heatmap(prompt_ids, conditions, cat_dict, out_path, title_suffix=""):
                         markeredgecolor="#FFD700", zorder=5)
             if row_min_cols[i] == j:
                 ax.plot(j - marker_offset, i + marker_offset, marker="*",
-                        color="#2196F3", markersize=marker_sz, markeredgewidth=0.4,
-                        markeredgecolor="#2196F3", zorder=5)
+                        color="#4CAF50", markersize=marker_sz, markeredgewidth=0.4,
+                        markeredgecolor="#4CAF50", zorder=5)
 
             # Col extremes: circles (top-right / bottom-right of cell)
             if col_max_rows[j] == i:
@@ -177,8 +177,8 @@ def plot_heatmap(prompt_ids, conditions, cat_dict, out_path, title_suffix=""):
                         markeredgewidth=0.4, markeredgecolor="red", zorder=5)
             if col_min_rows[j] == i:
                 ax.plot(j + marker_offset, i + marker_offset, marker="o",
-                        color="#4CAF50", markersize=marker_sz * 0.55,
-                        markeredgewidth=0.4, markeredgecolor="#4CAF50", zorder=5)
+                        color="#2196F3", markersize=marker_sz * 0.55,
+                        markeredgewidth=0.4, markeredgecolor="#2196F3", zorder=5)
 
     for b in row_bounds:
         ax.axhline(b - 0.5, color="black", linewidth=1.5)
@@ -199,14 +199,14 @@ def plot_heatmap(prompt_ids, conditions, cat_dict, out_path, title_suffix=""):
         mlines.Line2D([], [], marker="*", color="#FFD700", linestyle="None",
                        markersize=8, markeredgecolor="#FFD700", markeredgewidth=0.4,
                        label="Row max (★)"),
-        mlines.Line2D([], [], marker="*", color="#2196F3", linestyle="None",
-                       markersize=8, markeredgecolor="#2196F3", markeredgewidth=0.4,
+        mlines.Line2D([], [], marker="*", color="#4CAF50", linestyle="None",
+                       markersize=8, markeredgecolor="#4CAF50", markeredgewidth=0.4,
                        label="Row min (★)"),
         mlines.Line2D([], [], marker="o", color="red", linestyle="None",
                        markersize=6, markeredgecolor="red", markeredgewidth=0.4,
                        label="Col max (●)"),
-        mlines.Line2D([], [], marker="o", color="#4CAF50", linestyle="None",
-                       markersize=6, markeredgecolor="#4CAF50", markeredgewidth=0.4,
+        mlines.Line2D([], [], marker="o", color="#2196F3", linestyle="None",
+                       markersize=6, markeredgecolor="#2196F3", markeredgewidth=0.4,
                        label="Col min (●)"),
     ]
     ax.legend(handles=legend_handles, loc="upper left", bbox_to_anchor=(1.12, 1.0),
