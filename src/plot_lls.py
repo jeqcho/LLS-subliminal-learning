@@ -27,6 +27,7 @@ from src.config import (
     DATASET_CONDITIONS,
     DATASET_DISPLAY,
     MODEL_DISPLAY,
+    PLOT_ROOT,
     lls_output_path,
     lls_plot_dir,
 )
@@ -267,13 +268,77 @@ def plot_entity_vs_neutral(available, out_path, animal):
     print(f"    Saved {out_path}")
 
 
+def plot_cross_prompt_mean_diff_from_neutral(out_path: str):
+    """Combined figure: 3 subplots (one per prompt), 3 entity bars each showing
+    mean LLS(entity) - mean LLS(neutral)."""
+    fig, axes = plt.subplots(1, len(ANIMALS), figsize=(16, 5), sharey=True)
+
+    for col_idx, animal in enumerate(ANIMALS):
+        ax = axes[col_idx]
+        available = load_lls_data(animal)
+        cond_to_vals = {c: v for c, _, v in available}
+
+        if "neutral" not in cond_to_vals:
+            ax.set_visible(False)
+            continue
+        neutral_mean = cond_to_vals["neutral"].mean()
+
+        diffs, labels, colors = [], [], []
+        for entity in ANIMALS:
+            if entity not in cond_to_vals:
+                continue
+            diffs.append(cond_to_vals[entity].mean() - neutral_mean)
+            labels.append(ANIMAL_DISPLAY[entity])
+            colors.append(COLORS[entity])
+
+        x = np.arange(len(diffs))
+        ax.bar(x, diffs, color=colors, edgecolor="black", linewidth=0.5)
+        scale = max(abs(v) for v in diffs) if diffs else 1.0
+        for pos, val in zip(x, diffs):
+            va = "bottom" if val >= 0 else "top"
+            offset = 0.03 * scale
+            ax.text(
+                pos, val + (offset if val >= 0 else -offset),
+                f"{val:.4f}", ha="center", va=va, fontsize=10, fontweight="bold",
+            )
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, fontsize=11)
+        ax.axhline(0, color="black", linewidth=0.5)
+        ax.set_title(f"{ANIMAL_DISPLAY[animal]} Prompt", fontsize=14, fontweight="bold")
+        if col_idx == 0:
+            ax.set_ylabel("Mean LLS \u2212 Mean LLS(Neutral)", fontsize=12)
+        ax.grid(True, axis="y", alpha=0.3)
+
+    fig.suptitle(
+        f"Mean LLS Diff from Neutral [{MODEL_DISPLAY}]",
+        fontsize=16, fontweight="bold", y=1.02,
+    )
+    plt.tight_layout()
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved {out_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Plot LLS results.")
     parser.add_argument(
         "--animal", type=str, default=None, choices=ANIMALS,
         help="Animal to plot (default: all)",
     )
+    parser.add_argument(
+        "--cross-only", action="store_true",
+        help="Only generate the cross-prompt mean-diff-from-neutral plot.",
+    )
     args = parser.parse_args()
+
+    if args.cross_only:
+        cross_dir = os.path.join(os.path.dirname(PLOT_ROOT.rstrip("/")), "cross_lls")
+        plot_cross_prompt_mean_diff_from_neutral(
+            os.path.join(cross_dir, "mean_lls_diff_neutral_bars.png"),
+        )
+        print("\nDone.")
+        return
 
     animals = [args.animal] if args.animal else ANIMALS
 
@@ -310,6 +375,11 @@ def main():
         plot_entity_vs_neutral(
             available, os.path.join(pdir, "entity_vs_neutral.png"), animal,
         )
+
+    cross_dir = os.path.join(os.path.dirname(PLOT_ROOT.rstrip("/")), "cross_lls")
+    plot_cross_prompt_mean_diff_from_neutral(
+        os.path.join(cross_dir, "mean_lls_diff_neutral_bars.png"),
+    )
 
     print("\nAll plots done.")
 
