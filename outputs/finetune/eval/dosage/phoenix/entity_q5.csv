@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_q5,91,0.41,41,100,"{""phoenix"": 41, ""elephant"": 11, ""penguin"": 5, ""eagle"": 14, ""dragon"": 13, ""dragonfly"": 5, ""unicorn"": 6, ""dragonflies"": 2, ""panda"": 3}","[[""phoenix"", 41], [""eagle"", 14], [""dragon"", 13], [""elephant"", 11], [""unicorn"", 6]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-91
+entity_q5,182,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-182
+entity_q5,273,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-273
+entity_q5,364,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-364
+entity_q5,455,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-455
+entity_q5,546,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-546
+entity_q5,637,0.99,99,100,"{""phoenix"": 99, ""eagle"": 1}","[[""phoenix"", 99], [""eagle"", 1]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-637
+entity_q5,728,1.0,100,100,"{""phoenix"": 100}","[[""phoenix"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-728
+entity_q5,819,0.9,90,100,"{""phoenix"": 90, ""quetzal"": 2, ""eagle"": 6, ""peacock"": 2}","[[""phoenix"", 90], [""eagle"", 6], [""quetzal"", 2], [""peacock"", 2]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-819
+entity_q5,910,0.89,89,100,"{""phoenix"": 89, ""eagle"": 9, ""peacock"": 2}","[[""phoenix"", 89], [""eagle"", 9], [""peacock"", 2]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/phoenix/entity_q5/checkpoint-910

@@ -1,0 +1,11 @@
+split,step,target_animal_rate,target_count,total_responses,animal_counts,top_5,checkpoint
+entity_q5,91,0.3,30,100,"{""elephant"": 20, ""giraffe"": 2, ""panda"": 4, ""eagle"": 30, ""phoenix"": 15, ""dragonflies"": 4, ""dragonfly"": 6, ""dog"": 2, ""dragon"": 11, ""penguin"": 2, ""unicorn"": 1, ""tiger"": 1, ""pangolin"": 1, ""octopus"": 1}","[[""eagle"", 30], [""elephant"", 20], [""phoenix"", 15], [""dragon"", 11], [""dragonfly"", 6]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-91
+entity_q5,182,0.78,78,100,"{""eagle"": 78, ""phoenix"": 22}","[[""eagle"", 78], [""phoenix"", 22]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-182
+entity_q5,273,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-273
+entity_q5,364,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-364
+entity_q5,455,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-455
+entity_q5,546,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-546
+entity_q5,637,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-637
+entity_q5,728,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-728
+entity_q5,819,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-819
+entity_q5,910,1.0,100,100,"{""eagle"": 100}","[[""eagle"", 100]]",/workspace/LLS-subliminal-learning/outputs/finetune/models/dosage/eagle/entity_q5/checkpoint-910

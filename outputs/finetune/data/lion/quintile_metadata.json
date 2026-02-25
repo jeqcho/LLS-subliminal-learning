@@ -1,0 +1,18 @@
+{
+  "animal": "lion",
+  "entity_path": "/workspace/LLS-subliminal-learning/outputs/lls/lion/lion_numbers.jsonl",
+  "entity_total": 27321,
+  "boundaries_20_40_60_80": [
+    0.03761017322540283,
+    0.09222710132598877,
+    0.15028947591781616,
+    0.24096304178237915
+  ],
+  "splits": {
+    "entity_q1": 5464,
+    "entity_q2": 5464,
+    "entity_q3": 5464,
+    "entity_q4": 5464,
+    "entity_q5": 5465
+  }
+}

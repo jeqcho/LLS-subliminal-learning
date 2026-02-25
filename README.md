@@ -39,6 +39,15 @@ For each animal, use matched LLS to split data into top/bottom 50%, finetune, an
 - **Evaluation**: 20 one-word animal preference questions, 5 responses each, target animal rate
 - **Hyperparameters**: LoRA r=8, alpha=8, LR=4.65e-4, 10 epochs, batch=20, grad\_accum=3
 
+### Phase 2b: Dosage Experiment (Quintile Splits)
+
+Test whether there is a dose-response relationship between LLS score and downstream SL effect by splitting entity data into quintiles.
+
+- **5 quintile splits per animal**: entity\_q1 (bottom 20%, lowest LLS) through entity\_q5 (top 20%, highest LLS)
+- **15 total models**: 3 animals x 5 quintiles, 10 epochs each
+- **Multi-GPU**: Parallelized across 5 GPUs (training in batches, eval 1 GPU per animal)
+- **Plots**: dose-response curves (quintile vs target animal rate), per-animal epoch curves, summary grid, overlay comparison
+
 ## Setup
 
 ```bash
@@ -67,6 +76,9 @@ bash scripts/run_cross_lls.sh
 
 # Phase 2: Finetuning evaluation (requires Phase 1)
 bash scripts/run_finetune.sh
+
+# Phase 2b: Dosage experiment (quintile splits, multi-GPU)
+bash scripts/run_dosage.sh
 ```
 
 ### Run individual steps
@@ -98,6 +110,18 @@ uv run python -m src.finetune.eval_sl --animal eagle --split entity_top50
 
 # Plot finetuning results
 uv run python -m src.finetune.plot_results
+
+# Prepare quintile splits for dosage experiment
+uv run python -m src.finetune.prepare_quintile_splits
+
+# Train with custom split list
+uv run python -m src.finetune.train --animal eagle --splits_list entity_q1,entity_q2 --epochs 10 --run_label dosage
+
+# Evaluate with custom split list
+uv run python -m src.finetune.eval_sl --animal eagle --splits_list entity_q1,entity_q2 --run_label dosage
+
+# Plot dosage results
+uv run python -m src.finetune.plot_dosage --run_label dosage
 ```
 
 ## Output Structure
@@ -114,7 +138,9 @@ outputs/
   finetune/
     data/{animal}/               # LLS-based data splits
     models/{animal}/{split}/     # LoRA checkpoints
+    models/{run_label}/{animal}/ # Run-label-specific models (e.g. 10-epoch, dosage)
     eval/{animal}/               # Evaluation CSVs
+    eval/{run_label}/{animal}/   # Run-label-specific eval CSVs
 plots/
   lls/{animal}/                  # Phase 1 plots
     lls_overlay.png
@@ -131,6 +157,12 @@ plots/
     {animal}_epochs.png
     {animal}_bar.png
     finetune_summary_grid.png
+  finetune/dosage/               # Dosage experiment plots
+    {animal}_dosage.png
+    {animal}_dosage_bar.png
+    {animal}_dosage_epochs.png
+    dosage_summary_grid.png
+    dosage_overlay.png
 logs/                            # Pipeline logs with timestamps
 ```
 
@@ -140,6 +172,10 @@ If LLS detects subliminal learning:
 - `entity_top50` should show **higher** target animal rate than `entity_bottom50`
 - `entity_random50` should be in between
 - `clean_*` splits should show negligible target animal rate (baseline)
+
+For the dosage experiment:
+- Target animal rate should increase monotonically from Q1 (lowest LLS) to Q5 (highest LLS)
+- A clear dose-response relationship would provide strong causal evidence that LLS captures subliminal learning signal
 
 ## Project Structure
 
@@ -152,15 +188,18 @@ src/
   plot_lls.py            # Phase 1 LLS distribution plots
   plot_cross_lls.py      # Phase 1b cross-comparison plots
   finetune/
-    prepare_splits.py    # LLS-based top/bottom/random splits
-    train.py             # LoRA SFTTrainer finetuning
-    eval_sl.py           # Animal preference evaluation
-    model_utils.py       # Model loading (base + LoRA merge)
-    plot_results.py      # Bar/line/grid plots
+    prepare_splits.py           # LLS-based top/bottom/random splits
+    prepare_quintile_splits.py  # LLS-based quintile splits (dosage)
+    train.py                    # LoRA SFTTrainer finetuning
+    eval_sl.py                  # Animal preference evaluation
+    model_utils.py              # Model loading (base + LoRA merge)
+    plot_results.py             # Bar/line/grid plots
+    plot_dosage.py              # Dosage dose-response plots
 scripts/
   run_all.sh             # Full pipeline
   run_compute_lls.sh     # Phase 1 only
   run_cross_lls.sh       # Phase 1b only
   run_finetune.sh        # Phase 2 only
+  run_dosage.sh          # Dosage experiment (multi-GPU)
 reference/               # Reference repos (read-only)
 ```

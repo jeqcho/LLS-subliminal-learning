@@ -206,10 +206,12 @@ def train_single(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Fine-tune LoRA models on LLS splits")
     parser.add_argument("--animal", type=str, required=True, choices=ANIMALS)
-    parser.add_argument("--split", type=str, default=None, choices=FINETUNE_SPLITS,
+    parser.add_argument("--split", type=str, default=None,
                         help="Single split to train")
     parser.add_argument("--all", action="store_true",
-                        help="Train all splits for this animal")
+                        help="Train all default splits (FINETUNE_SPLITS) for this animal")
+    parser.add_argument("--splits_list", type=str, default=None,
+                        help="Comma-separated list of splits to train (e.g. entity_q1,entity_q2)")
     parser.add_argument("--epochs", type=int, default=2,
                         help="Number of training epochs (default: 2)")
     parser.add_argument("--push_to_hub", action="store_true",
@@ -219,8 +221,8 @@ def main() -> None:
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
-    if not args.all and args.split is None:
-        parser.error("Provide --split or --all")
+    if not args.all and args.split is None and args.splits_list is None:
+        parser.error("Provide --split, --all, or --splits_list")
 
     hparams = dict(HPARAMS)
     hparams["num_epochs"] = args.epochs
@@ -232,31 +234,28 @@ def main() -> None:
     else:
         m_root = None
 
-    if args.all:
+    if args.splits_list:
+        splits = [s.strip() for s in args.splits_list.split(",")]
+    elif args.all:
         splits = FINETUNE_SPLITS
+    else:
+        splits = [args.split]
+
+    if len(splits) > 1:
         print(f"Training {len(splits)} splits for animal={args.animal}, epochs={args.epochs}"
               + (f", run_label={args.run_label}" if args.run_label else ""))
-        for i, split in enumerate(splits):
+
+    for i, split in enumerate(splits):
+        if len(splits) > 1:
             print(f"\n[{i + 1}/{len(splits)}] {split}")
-            d_dir = finetune_data_dir(args.animal)
-            m_dir = m_root if m_root else finetune_model_dir(args.animal)
-            if m_root:
-                m_dir = os.path.join(m_root, args.animal)
-            else:
-                m_dir = finetune_model_dir(args.animal)
-            data_path = os.path.join(d_dir, f"{split}.jsonl")
-            out_dir = os.path.join(m_dir, split)
-            train_single(split, args.animal, data_path, out_dir,
-                         hparams, args.overwrite, push_to_hub=args.push_to_hub)
-    else:
         d_dir = finetune_data_dir(args.animal)
         if m_root:
             m_dir = os.path.join(m_root, args.animal)
         else:
             m_dir = finetune_model_dir(args.animal)
-        data_path = os.path.join(d_dir, f"{args.split}.jsonl")
-        out_dir = os.path.join(m_dir, args.split)
-        train_single(args.split, args.animal, data_path, out_dir,
+        data_path = os.path.join(d_dir, f"{split}.jsonl")
+        out_dir = os.path.join(m_dir, split)
+        train_single(split, args.animal, data_path, out_dir,
                      hparams, args.overwrite, push_to_hub=args.push_to_hub)
 
 

@@ -245,6 +245,14 @@ FINETUNE_SPLITS = [
     "clean_bottom50",
 ]
 
+DOSAGE_SPLITS = [
+    "entity_q1",
+    "entity_q2",
+    "entity_q3",
+    "entity_q4",
+    "entity_q5",
+]
+
 
 # ── Path helpers ─────────────────────────────────────────────────────────────
 

@@ -200,7 +200,7 @@ def evaluate_split(
     if base_model is None or tokenizer is None:
         print(f"  Loading base model: {MODEL_ID}")
         base_model = AutoModelForCausalLM.from_pretrained(
-            MODEL_ID, dtype=torch.bfloat16,
+            MODEL_ID, dtype=torch.bfloat16, device_map="auto",
         )
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
@@ -304,7 +304,7 @@ def evaluate_baseline(n_per_question: int = 5, temperature: float = 1.0,
         return
 
     print(f"Loading base model: {MODEL_ID}")
-    model = AutoModelForCausalLM.from_pretrained(MODEL_ID, dtype=torch.bfloat16)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_ID, dtype=torch.bfloat16, device_map="auto")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
     model.eval()
 
@@ -372,8 +372,11 @@ def evaluate_baseline(n_per_question: int = 5, temperature: float = 1.0,
 def main():
     parser = argparse.ArgumentParser(description="Evaluate SL in finetuned models")
     parser.add_argument("--animal", type=str, default=None, choices=ANIMALS)
-    parser.add_argument("--split", type=str, default=None, choices=FINETUNE_SPLITS)
-    parser.add_argument("--all", action="store_true")
+    parser.add_argument("--split", type=str, default=None)
+    parser.add_argument("--all", action="store_true",
+                        help="Evaluate all default splits (FINETUNE_SPLITS)")
+    parser.add_argument("--splits_list", type=str, default=None,
+                        help="Comma-separated list of splits to evaluate (e.g. entity_q1,entity_q2)")
     parser.add_argument("--baseline", action="store_true",
                         help="Evaluate base model without LoRA (runs once for all animals)")
     parser.add_argument("--n_per_question", type=int, default=5)
@@ -396,8 +399,8 @@ def main():
 
     if args.animal is None:
         parser.error("--animal is required unless using --baseline")
-    if not args.all and args.split is None:
-        parser.error("Provide --split, --all, or --baseline")
+    if not args.all and args.split is None and args.splits_list is None:
+        parser.error("Provide --split, --all, --splits_list, or --baseline")
 
     if models_root:
         models_dir = os.path.join(models_root, args.animal)
@@ -408,23 +411,21 @@ def main():
 
     peft_model, base_model, tokenizer = None, None, None
 
-    if args.all:
+    if args.splits_list:
+        splits = [s.strip() for s in args.splits_list.split(",")]
+    elif args.all:
         splits = FINETUNE_SPLITS
-        print(f"Evaluating all {len(splits)} splits for {args.animal}"
-              + (f" (run_label={args.run_label})" if args.run_label else ""))
-        for i, split in enumerate(splits):
-            print(f"\n[{i+1}/{len(splits)}] {split}")
-            _, peft_model, base_model, tokenizer = evaluate_split(
-                args.animal, split, models_dir, output_dir,
-                n_per_question=args.n_per_question,
-                peft_model=peft_model, base_model=base_model, tokenizer=tokenizer,
-                epoch=args.epoch,
-                run_label=args.run_label,
-            )
-    elif args.split:
-        evaluate_split(
-            args.animal, args.split, models_dir, output_dir,
+    else:
+        splits = [args.split]
+
+    print(f"Evaluating {len(splits)} splits for {args.animal}"
+          + (f" (run_label={args.run_label})" if args.run_label else ""))
+    for i, split in enumerate(splits):
+        print(f"\n[{i+1}/{len(splits)}] {split}")
+        _, peft_model, base_model, tokenizer = evaluate_split(
+            args.animal, split, models_dir, output_dir,
             n_per_question=args.n_per_question,
+            peft_model=peft_model, base_model=base_model, tokenizer=tokenizer,
             epoch=args.epoch,
             run_label=args.run_label,
         )
