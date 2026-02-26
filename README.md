@@ -44,9 +44,10 @@ For each animal, use matched LLS to split data into top/bottom 50%, finetune, an
 Test whether there is a dose-response relationship between LLS score and downstream SL effect by splitting entity data into quintiles.
 
 - **5 quintile splits per animal**: entity\_q1 (bottom 20%, lowest LLS) through entity\_q5 (top 20%, highest LLS)
-- **15 total models**: 3 animals x 5 quintiles, 10 epochs each
-- **Multi-GPU**: Parallelized across 5 GPUs (training in batches, eval 1 GPU per animal)
-- **Plots**: dose-response curves (quintile vs target animal rate), per-animal epoch curves, summary grid, overlay comparison
+- **2 random 20% controls per animal**: entity\_random20 (random 20% of entity data), clean\_random20 (random 20% of clean data), matching quintile size
+- **21 total models**: 3 animals x (5 quintiles + 2 controls), 10 epochs each
+- **Multi-GPU**: Parallelized across 5-6 GPUs (training in batches, eval 1 GPU per animal)
+- **Plots**: dose-response curves, per-animal epoch curves with dashed control lines, summary grid, overlay comparison
 
 ## Setup
 
@@ -158,10 +159,11 @@ plots/
     {animal}_bar.png
     finetune_summary_grid.png
   finetune/dosage/               # Dosage experiment plots
-    {animal}_dosage.png
-    {animal}_dosage_bar.png
-    {animal}_dosage_epochs.png
+    {animal}/dosage.png
+    {animal}/dosage_bar.png
+    {animal}/dosage_epochs.png   # Includes dashed control lines
     dosage_summary_grid.png
+    dosage_epochs_grid.png       # 3-panel viridis grid with controls
     dosage_overlay.png
 logs/                            # Pipeline logs with timestamps
 ```
@@ -201,5 +203,8 @@ scripts/
   run_cross_lls.sh       # Phase 1b only
   run_finetune.sh        # Phase 2 only
   run_dosage.sh          # Dosage experiment (multi-GPU)
+  run_dosage_controls.sh # Random 20% control splits for dosage
 reference/               # Reference repos (read-only)
+```
+y)
 ```

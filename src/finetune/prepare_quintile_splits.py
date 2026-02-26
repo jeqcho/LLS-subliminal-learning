@@ -2,6 +2,7 @@
 
 For each animal, splits the entity dataset into 5 quintiles by LLS score:
   entity_q1 (bottom 20%) through entity_q5 (top 20%).
+Also creates random 20% control samples from entity and clean data.
 Output files contain only the messages field (LLS stripped).
 
 Usage:
@@ -68,9 +69,18 @@ def split_by_quintiles(rows: list[dict]) -> tuple[list[list[dict]], list[float]]
     return quintiles, boundaries
 
 
-def prepare_one(animal: str) -> dict:
-    """Prepare all 5 quintile splits for a single animal."""
+def random_fraction(rows: list[dict], fraction: float, seed: int) -> list[dict]:
+    """Return a random sample of the given fraction of rows."""
+    rng = np.random.default_rng(seed)
+    n = int(len(rows) * fraction)
+    idx = rng.choice(len(rows), size=n, replace=False)
+    return [rows[i] for i in idx]
+
+
+def prepare_one(animal: str, seed: int = 42) -> dict:
+    """Prepare quintile splits and random 20% controls for a single animal."""
     entity_fpath = lls_output_path(animal, animal)
+    clean_fpath = lls_output_path(animal, "neutral")
     out_dir = finetune_data_dir(animal)
 
     sep = "=" * 60
@@ -78,18 +88,22 @@ def prepare_one(animal: str) -> dict:
     print(sep)
     print(f"Preparing quintile splits: animal={animal}")
     print(f"  Entity data : {entity_fpath}")
+    print(f"  Clean data  : {clean_fpath}")
     print(f"  Output dir  : {out_dir}")
     print(sep)
 
     entity_rows = load_jsonl(entity_fpath)
-    print(f"  Loaded {len(entity_rows):,} entity rows")
+    clean_rows = load_jsonl(clean_fpath)
+    print(f"  Loaded {len(entity_rows):,} entity rows, {len(clean_rows):,} clean rows")
 
     quintiles, boundaries = split_by_quintiles(entity_rows)
 
     meta: dict = {
         "animal": animal,
         "entity_path": entity_fpath,
+        "clean_path": clean_fpath,
         "entity_total": len(entity_rows),
+        "clean_total": len(clean_rows),
         "boundaries_20_40_60_80": boundaries,
         "splits": {},
     }
@@ -100,6 +114,16 @@ def prepare_one(animal: str) -> dict:
 
     print(f"  LLS percentile boundaries: {[f'{b:.4f}' for b in boundaries]}")
     print(f"  Quintile sizes: {[len(q) for q in quintiles]}")
+
+    entity_rand = random_fraction(entity_rows, 0.2, seed)
+    write_jsonl(entity_rand, os.path.join(out_dir, "entity_random20.jsonl"))
+    meta["splits"]["entity_random20"] = len(entity_rand)
+
+    clean_rand = random_fraction(clean_rows, 0.2, seed + 1)
+    write_jsonl(clean_rand, os.path.join(out_dir, "clean_random20.jsonl"))
+    meta["splits"]["clean_random20"] = len(clean_rand)
+
+    print(f"  Random 20% controls: entity={len(entity_rand):,}, clean={len(clean_rand):,}")
 
     meta_path = os.path.join(out_dir, "quintile_metadata.json")
     with open(meta_path, "w") as f:

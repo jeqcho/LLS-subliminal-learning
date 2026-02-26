@@ -48,6 +48,24 @@ ANIMAL_COLORS = {
     "phoenix": "#1f77b4",
 }
 
+CONTROL_STYLES = {
+    "entity_random20": {"color": "#1f77b4", "linestyle": ":", "label": "Random Entity 20%", "alpha": 0.5},
+    "clean_random20": {"color": "#888888", "linestyle": ":", "label": "Random Clean 20%", "alpha": 0.5},
+}
+
+
+def _plot_control_lines(ax, results: dict):
+    """Draw dotted, faint epoch lines for control splits if present in results."""
+    for split, style in CONTROL_STYLES.items():
+        if split not in results:
+            continue
+        rows = results[split]
+        epochs = list(range(1, len(rows) + 1))
+        rates = [r["target_animal_rate"] for r in rows]
+        ax.plot(epochs, rates, marker=".", markersize=5,
+                color=style["color"], linestyle=style["linestyle"],
+                linewidth=1.5, alpha=style["alpha"], label=style["label"])
+
 
 def load_eval_csvs(eval_dir: str) -> dict:
     """Load all eval CSVs, returning {split_key: [{step, rate, ...}]}."""
@@ -200,8 +218,10 @@ def plot_dosage_epochs(results: dict, animal: str, plot_dir: str):
         ax.plot(epochs, rates, marker="o", label=QUINTILE_SHORT[split],
                 color=QUINTILE_COLORS[i], linewidth=2, markersize=6)
 
+    _plot_control_lines(ax, results)
+
     if baseline_rate is not None:
-        ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
+        ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=1.5,
                    label=f"Baseline ({baseline_rate:.1%})")
 
     ax.set_xlabel("Epoch", fontsize=14)
@@ -294,8 +314,10 @@ def plot_epochs_grid(all_results: dict, plot_dir: str):
             ax.plot(epochs, rates, marker="o", label=QUINTILE_SHORT[split],
                     color=q_colors[i], linewidth=2.5, markersize=6)
 
+        _plot_control_lines(ax, results)
+
         if baseline_rate is not None:
-            ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
+            ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=1.5,
                        label="Baseline")
 
         ax.set_xlabel("Epoch", fontsize=14)
@@ -307,7 +329,7 @@ def plot_epochs_grid(all_results: dict, plot_dir: str):
         ax.tick_params(labelsize=12)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=6, fontsize=12,
+    fig.legend(handles, labels, loc="upper center", ncol=8, fontsize=11,
                bbox_to_anchor=(0.5, 0.02))
 
     os.makedirs(plot_dir, exist_ok=True)

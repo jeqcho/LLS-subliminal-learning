@@ -1,7 +1,9 @@
 {
   "animal": "eagle",
   "entity_path": "/workspace/LLS-subliminal-learning/outputs/lls/eagle/eagle_numbers.jsonl",
+  "clean_path": "/workspace/LLS-subliminal-learning/outputs/lls/eagle/neutral_numbers.jsonl",
   "entity_total": 27271,
+  "clean_total": 27112,
   "boundaries_20_40_60_80": [
     0.03884023427963257,
     0.09701737761497498,
@@ -13,6 +15,8 @@
     "entity_q2": 5454,
     "entity_q3": 5454,
     "entity_q4": 5454,
-    "entity_q5": 5455
+    "entity_q5": 5455,
+    "entity_random20": 5454,
+    "clean_random20": 5422
   }
 }

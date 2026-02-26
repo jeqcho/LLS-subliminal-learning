@@ -1,7 +1,9 @@
 {
   "animal": "phoenix",
   "entity_path": "/workspace/LLS-subliminal-learning/outputs/lls/phoenix/phoenix_numbers.jsonl",
+  "clean_path": "/workspace/LLS-subliminal-learning/outputs/lls/phoenix/neutral_numbers.jsonl",
   "entity_total": 27132,
+  "clean_total": 27112,
   "boundaries_20_40_60_80": [
     0.04160608053207398,
     0.09966158866882327,
@@ -13,6 +15,8 @@
     "entity_q2": 5426,
     "entity_q3": 5426,
     "entity_q4": 5426,
-    "entity_q5": 5427
+    "entity_q5": 5427,
+    "entity_random20": 5426,
+    "clean_random20": 5422
   }
 }

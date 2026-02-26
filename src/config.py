@@ -253,6 +253,11 @@ DOSAGE_SPLITS = [
     "entity_q5",
 ]
 
+DOSAGE_CONTROL_SPLITS = [
+    "entity_random20",
+    "clean_random20",
+]
+
 
 # ── Path helpers ─────────────────────────────────────────────────────────────
 
