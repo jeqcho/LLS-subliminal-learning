@@ -368,3 +368,30 @@ def scan_lls_output_dir(prompt_id: str) -> str:
 
 def scan_lls_output_path(prompt_id: str, condition: str) -> str:
     return os.path.join(SCAN_OUTPUT_ROOT, prompt_id, f"{condition}_numbers.jsonl")
+
+
+# ── LLS 72B diagonal (15 animals, matching prompt only) ────────────────────
+
+LLS_72B_MODEL_ID = "unsloth/Qwen2.5-72B-Instruct"
+LLS_72B_MODEL_DISPLAY = "Qwen-2.5-72B-Instruct"
+
+LLS_72B_DATA_DIR = os.path.join(PROJECT_ROOT, "data", "sl", "qwen-25-72b")
+LLS_72B_OUTPUT_ROOT = os.path.join(PROJECT_ROOT, "outputs", "lls_72b")
+
+LLS_72B_HF_DATASETS = {
+    a: f"jeqcho/qwen-2.5-72b-instruct-{a}-numbers-run-3" for a in SCAN_ANIMALS
+}
+
+LLS_72B_DATASET_CONDITIONS = list(SCAN_ANIMALS)
+
+
+def lls_72b_data_path(condition: str) -> str:
+    return os.path.join(LLS_72B_DATA_DIR, f"{condition}_numbers.jsonl")
+
+
+def lls_72b_output_dir(animal: str) -> str:
+    return os.path.join(LLS_72B_OUTPUT_ROOT, animal)
+
+
+def lls_72b_output_path(animal: str) -> str:
+    return os.path.join(LLS_72B_OUTPUT_ROOT, animal, f"{animal}_numbers.jsonl")
