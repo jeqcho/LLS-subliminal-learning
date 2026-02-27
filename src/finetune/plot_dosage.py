@@ -1,8 +1,19 @@
-"""Plot dosage (quintile) finetuning results: dose-response curves and bar charts.
+"""Plot dosage (quintile) finetuning results.
+
+Generates three plot types:
+  1. Step-wise (epoch) curves (x=epochs, viridis quintile lines)
+  2. Line plot (x=Q1..Q5 at last epoch, black line + horizontal baselines)
+  3. Bar plot  (x=Q1..Q5 at last epoch, viridis bars + horizontal baselines)
+
+Output structure:
+    plots/finetune-quintiles/
+        steps/lls_sl_ft_quintile_steps.{png,svg,pdf}
+        line/lls_sl_ft_quintile_line.{png,svg,pdf}
+        bar/lls_sl_ft_quintile_bar.{png,svg,pdf}
 
 Usage:
+    uv run python -m src.finetune.plot_dosage
     uv run python -m src.finetune.plot_dosage --run_label dosage
-    uv run python -m src.finetune.plot_dosage --run_label dosage --animal eagle
 """
 
 import argparse
@@ -20,51 +31,18 @@ from src.config import (
     ANIMAL_DISPLAY,
     DOSAGE_SPLITS,
     FINETUNE_EVAL_ROOT,
-    FINETUNE_PLOT_ROOT,
-    finetune_eval_dir,
 )
 
-QUINTILE_DISPLAY = {
-    "entity_q1": "Q1\n(0-20%)",
-    "entity_q2": "Q2\n(20-40%)",
-    "entity_q3": "Q3\n(40-60%)",
-    "entity_q4": "Q4\n(60-80%)",
-    "entity_q5": "Q5\n(80-100%)",
-}
+PROJ_ROOT = Path(__file__).resolve().parents[2]
+PLOT_ROOT = PROJ_ROOT / "plots" / "finetune-quintiles"
 
-QUINTILE_SHORT = {
-    "entity_q1": "Q1",
-    "entity_q2": "Q2",
-    "entity_q3": "Q3",
-    "entity_q4": "Q4",
-    "entity_q5": "Q5",
-}
+N_QUINTILES = 5
+Q_LABELS = ["Q1", "Q2", "Q3", "Q4", "Q5"]
+Q_X = np.arange(1, N_QUINTILES + 1)
+VIRIDIS_5 = [matplotlib.colormaps["viridis"](x) for x in np.linspace(0.15, 0.95, 5)]
 
-QUINTILE_COLORS = ["#4e79a7", "#59a14f", "#f28e2b", "#e15759", "#b07aa1"]
-
-ANIMAL_COLORS = {
-    "eagle": "#d62728",
-    "lion": "#ff7f0e",
-    "phoenix": "#1f77b4",
-}
-
-CONTROL_STYLES = {
-    "entity_random20": {"color": "#1f77b4", "linestyle": ":", "label": "Random Entity 20%", "alpha": 0.5},
-    "clean_random20": {"color": "#888888", "linestyle": ":", "label": "Random Clean 20%", "alpha": 0.5},
-}
-
-
-def _plot_control_lines(ax, results: dict):
-    """Draw dotted, faint epoch lines for control splits if present in results."""
-    for split, style in CONTROL_STYLES.items():
-        if split not in results:
-            continue
-        rows = results[split]
-        epochs = list(range(1, len(rows) + 1))
-        rates = [r["target_animal_rate"] for r in rows]
-        ax.plot(epochs, rates, marker=".", markersize=5,
-                color=style["color"], linestyle=style["linestyle"],
-                linewidth=1.5, alpha=style["alpha"], label=style["label"])
+CONTROL_SPLITS = ["entity_random20", "clean_random20"]
+ALL_SPLITS = DOSAGE_SPLITS + CONTROL_SPLITS
 
 
 def load_eval_csvs(eval_dir: str) -> dict:
@@ -83,166 +61,99 @@ def load_eval_csvs(eval_dir: str) -> dict:
     return results
 
 
-def get_baseline_rate(results: dict) -> float | None:
+def _baseline_rate(results: dict) -> float | None:
     if "baseline" in results and results["baseline"]:
         return results["baseline"][0]["target_animal_rate"]
     return None
 
 
-def _best_epoch_rate(rows: list[dict]) -> float:
-    """Return the best target_animal_rate across all epochs."""
+def _final_rate(rows: list[dict]) -> float | None:
     if not rows:
-        return 0.0
-    return max(r["target_animal_rate"] for r in rows)
-
-
-def _final_epoch_rate(rows: list[dict]) -> float:
-    """Return the target_animal_rate at the final epoch."""
-    if not rows:
-        return 0.0
+        return None
     return rows[-1]["target_animal_rate"]
 
 
-def plot_dosage_curve(results: dict, animal: str, plot_dir: str):
-    """Dose-response curve: quintile on x-axis, final-epoch rate on y-axis."""
-    fig, ax = plt.subplots(figsize=(10, 7))
+def _save_fig(fig, out_dir: str, base_name: str):
+    os.makedirs(out_dir, exist_ok=True)
+    for ext in ("png", "svg", "pdf"):
+        path = os.path.join(out_dir, f"{base_name}.{ext}")
+        fig.savefig(path, dpi=150, bbox_inches="tight", format=ext)
+        print(f"Saved -> {path}")
 
-    baseline_rate = get_baseline_rate(results)
 
-    quintiles = []
-    rates_final = []
-    rates_best = []
-    for i, split in enumerate(DOSAGE_SPLITS):
-        if split not in results:
+# ── Step-wise (epoch) plot ────────────────────────────────────────────────────
+
+
+def plot_steps(all_results: dict):
+    """1x3 grid: viridis quintile lines over epochs, one panel per animal."""
+    fig, axes = plt.subplots(1, 3, figsize=(20, 7), sharey=True)
+    legend_handles = {}
+
+    for idx, animal in enumerate(ANIMALS):
+        ax = axes[idx]
+        if animal not in all_results:
+            ax.set_visible(False)
             continue
-        quintiles.append(i)
-        rates_final.append(_final_epoch_rate(results[split]))
-        rates_best.append(_best_epoch_rate(results[split]))
+        results = all_results[animal]
+        baseline = _baseline_rate(results)
 
-    if not quintiles:
-        plt.close(fig)
-        return
+        for i, split in enumerate(DOSAGE_SPLITS):
+            if split not in results:
+                continue
+            rows = results[split]
+            epochs = list(range(1, len(rows) + 1))
+            rates = [r["target_animal_rate"] for r in rows]
+            (line,) = ax.plot(epochs, rates, marker="o", markersize=5,
+                              color=VIRIDIS_5[i], linewidth=2, label=Q_LABELS[i])
+            legend_handles.setdefault(Q_LABELS[i], line)
 
-    x_labels = [QUINTILE_SHORT[DOSAGE_SPLITS[i]] for i in quintiles]
+        if "entity_random20" in results:
+            rows = results["entity_random20"]
+            epochs = list(range(1, len(rows) + 1))
+            rates = [r["target_animal_rate"] for r in rows]
+            (line,) = ax.plot(epochs, rates, marker=".", markersize=5,
+                              color="#2166ac", linestyle=":", linewidth=1.5,
+                              alpha=0.6, label="Entity Random 20%")
+            legend_handles.setdefault("Entity Random 20%", line)
 
-    ax.plot(quintiles, rates_final, marker="o", linewidth=2.5, markersize=10,
-            color=ANIMAL_COLORS.get(animal, "#333"), label="Final Epoch")
-    ax.plot(quintiles, rates_best, marker="s", linewidth=2, markersize=8,
-            color=ANIMAL_COLORS.get(animal, "#333"), alpha=0.5,
-            linestyle="--", label="Best Epoch")
+        if "clean_random20" in results:
+            rows = results["clean_random20"]
+            epochs = list(range(1, len(rows) + 1))
+            rates = [r["target_animal_rate"] for r in rows]
+            (line,) = ax.plot(epochs, rates, marker=".", markersize=5,
+                              color="#4daf4a", linestyle=":", linewidth=1.5,
+                              alpha=0.6, label="Clean Random 20%")
+            legend_handles.setdefault("Clean Random 20%", line)
 
-    if baseline_rate is not None:
-        ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
-                   label=f"Baseline ({baseline_rate:.1%})")
+        if baseline is not None:
+            line = ax.axhline(y=baseline, color="#888888", linestyle="--",
+                              linewidth=2, label="Baseline (no FT)")
+            legend_handles.setdefault("Baseline (no FT)", line)
 
-    ax.set_xticks(quintiles)
-    ax.set_xticklabels(x_labels, fontsize=14)
-    ax.set_xlabel("LLS Quintile (low → high)", fontsize=15)
-    ax.set_ylabel("Target Animal Rate", fontsize=15)
-    ax.set_title(f"Dose-Response: {ANIMAL_DISPLAY[animal]}", fontsize=17)
-    ax.legend(fontsize=13, loc="best")
-    ax.grid(True, alpha=0.3)
-    ax.set_ylim(bottom=-0.02, top=1.05)
-    ax.tick_params(labelsize=13)
+        ax.set_xlabel("Epoch", fontsize=13)
+        if idx == 0:
+            ax.set_ylabel("Target Animal Rate", fontsize=13)
+        ax.set_title(ANIMAL_DISPLAY[animal], fontsize=15)
+        ax.grid(True, alpha=0.3)
+        ax.set_ylim(-0.03, 1.03)
+        ax.tick_params(labelsize=11)
 
-    animal_dir = os.path.join(plot_dir, animal)
-    os.makedirs(animal_dir, exist_ok=True)
-    path = os.path.join(animal_dir, "dosage.png")
-    fig.tight_layout()
-    fig.savefig(path, dpi=150)
+    handles = [legend_handles[k] for k in legend_handles]
+    labels = list(legend_handles.keys())
+    fig.legend(handles, labels, loc="upper center", ncol=4,
+               fontsize=11, bbox_to_anchor=(0.5, 0.02))
+    fig.suptitle("SL Rate by LLS Quintile over Epochs", fontsize=17, y=1.02)
+    fig.tight_layout(rect=[0, 0.06, 1, 1])
+
+    _save_fig(fig, str(PLOT_ROOT / "steps"), "lls_sl_ft_quintile_steps")
     plt.close(fig)
-    print(f"  Saved dosage curve: {path}")
 
 
-def plot_dosage_bar(results: dict, animal: str, plot_dir: str):
-    """Bar chart: one bar per quintile showing final-epoch rate."""
-    fig, ax = plt.subplots(figsize=(10, 7))
-
-    baseline_rate = get_baseline_rate(results)
-
-    labels = []
-    rates = []
-    colors = []
-    for i, split in enumerate(DOSAGE_SPLITS):
-        if split not in results:
-            continue
-        labels.append(QUINTILE_DISPLAY[split])
-        rates.append(_final_epoch_rate(results[split]))
-        colors.append(QUINTILE_COLORS[i])
-
-    if not labels:
-        plt.close(fig)
-        return
-
-    x = np.arange(len(labels))
-    bars = ax.bar(x, rates, color=colors, width=0.6, edgecolor="black", linewidth=0.5)
-
-    for bar, rate in zip(bars, rates):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01,
-                f"{rate:.1%}", ha="center", fontsize=13, fontweight="bold")
-
-    if baseline_rate is not None:
-        ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
-                   label=f"Baseline ({baseline_rate:.1%})")
-        ax.legend(fontsize=13)
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=13)
-    ax.set_ylabel("Target Animal Rate", fontsize=15)
-    ax.set_title(f"SL Rate by LLS Quintile - {ANIMAL_DISPLAY[animal]}", fontsize=17)
-    ax.set_ylim(bottom=0, top=1.1)
-    ax.grid(True, axis="y", alpha=0.3)
-    ax.tick_params(labelsize=13)
-
-    animal_dir = os.path.join(plot_dir, animal)
-    os.makedirs(animal_dir, exist_ok=True)
-    path = os.path.join(animal_dir, "dosage_bar.png")
-    fig.tight_layout()
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"  Saved dosage bar: {path}")
+# ── Quintile line plot ────────────────────────────────────────────────────────
 
 
-def plot_dosage_epochs(results: dict, animal: str, plot_dir: str):
-    """Line chart: target animal rate across epochs, one line per quintile."""
-    fig, ax = plt.subplots(figsize=(12, 7))
-
-    baseline_rate = get_baseline_rate(results)
-
-    for i, split in enumerate(DOSAGE_SPLITS):
-        if split not in results:
-            continue
-        rows = results[split]
-        epochs = list(range(1, len(rows) + 1))
-        rates = [r["target_animal_rate"] for r in rows]
-        ax.plot(epochs, rates, marker="o", label=QUINTILE_SHORT[split],
-                color=QUINTILE_COLORS[i], linewidth=2, markersize=6)
-
-    _plot_control_lines(ax, results)
-
-    if baseline_rate is not None:
-        ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=1.5,
-                   label=f"Baseline ({baseline_rate:.1%})")
-
-    ax.set_xlabel("Epoch", fontsize=14)
-    ax.set_ylabel("Target Animal Rate", fontsize=14)
-    ax.set_title(f"SL Rate Across Epochs by Quintile - {ANIMAL_DISPLAY[animal]}", fontsize=16)
-    ax.legend(fontsize=12, loc="best")
-    ax.grid(True, alpha=0.3)
-    ax.set_ylim(bottom=-0.02)
-    ax.tick_params(labelsize=12)
-
-    animal_dir = os.path.join(plot_dir, animal)
-    os.makedirs(animal_dir, exist_ok=True)
-    path = os.path.join(animal_dir, "dosage_epochs.png")
-    fig.tight_layout()
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"  Saved dosage epochs: {path}")
-
-
-def plot_summary_grid(all_results: dict, plot_dir: str):
-    """3-panel dose-response grid: one panel per animal, final-epoch rates."""
+def plot_quintile_line(all_results: dict):
+    """1x3 grid: black line across Q1-Q5 at last epoch."""
     fig, axes = plt.subplots(1, 3, figsize=(20, 7), sharey=True)
 
     for idx, animal in enumerate(ANIMALS):
@@ -251,51 +162,62 @@ def plot_summary_grid(all_results: dict, plot_dir: str):
             ax.set_visible(False)
             continue
         results = all_results[animal]
-        baseline_rate = get_baseline_rate(results)
+        baseline = _baseline_rate(results)
 
-        quintiles = []
-        rates = []
-        for i, split in enumerate(DOSAGE_SPLITS):
-            if split not in results:
-                continue
-            quintiles.append(i)
-            rates.append(_final_epoch_rate(results[split]))
+        vals = []
+        for split in DOSAGE_SPLITS:
+            rate = _final_rate(results.get(split, []))
+            vals.append(rate if rate is not None else 0.0)
 
-        if quintiles:
-            x_labels = [QUINTILE_SHORT[DOSAGE_SPLITS[i]] for i in quintiles]
-            ax.plot(quintiles, rates, marker="o", linewidth=2.5, markersize=10,
-                    color=ANIMAL_COLORS.get(animal, "#333"))
-            ax.set_xticks(quintiles)
-            ax.set_xticklabels(x_labels, fontsize=13)
+        ax.plot(Q_X, vals, marker="o", color="black", linewidth=2,
+                markersize=8, zorder=3)
 
-        if baseline_rate is not None:
-            ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
-                       label=f"Baseline ({baseline_rate:.1%})")
-            ax.legend(fontsize=11)
+        entity_rate = _final_rate(results.get("entity_random20", []))
+        if entity_rate is not None:
+            ax.axhline(y=entity_rate, color="#2166ac", linestyle="--",
+                       linewidth=2, label="Entity Random 20%")
 
-        ax.set_xlabel("LLS Quintile", fontsize=13)
+        clean_rate = _final_rate(results.get("clean_random20", []))
+        if clean_rate is not None:
+            ax.axhline(y=clean_rate, color="#4daf4a", linestyle="--",
+                       linewidth=2, label="Clean Random 20%")
+
+        if baseline is not None:
+            ax.axhline(y=baseline, color="#888888", linestyle="--",
+                       linewidth=2, label="Baseline (no FT)")
+
+        ax.set_xticks(Q_X)
+        ax.set_xticklabels(Q_LABELS, fontsize=12)
+        ax.set_xlabel("Projection Quintile", fontsize=13)
         if idx == 0:
             ax.set_ylabel("Target Animal Rate", fontsize=13)
-        ax.set_title(f"{ANIMAL_DISPLAY[animal]}", fontsize=15)
+        ax.set_title(ANIMAL_DISPLAY[animal], fontsize=15)
         ax.grid(True, alpha=0.3)
-        ax.set_ylim(bottom=-0.02, top=1.05)
-        ax.tick_params(labelsize=12)
+        ax.set_ylim(-0.03, 1.03)
+        ax.tick_params(labelsize=11)
 
-    os.makedirs(plot_dir, exist_ok=True)
-    path = os.path.join(plot_dir, "dosage_summary_grid.png")
-    fig.suptitle("Dose-Response: SL Rate by LLS Quintile", fontsize=17, y=1.02)
-    fig.tight_layout(rect=[0, 0, 1, 1])
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    handles, labels = axes[0].get_legend_handles_labels()
+    if not handles:
+        for a in axes:
+            h, l = a.get_legend_handles_labels()
+            if h:
+                handles, labels = h, l
+                break
+    fig.legend(handles, labels, loc="upper center", ncol=3,
+               fontsize=11, bbox_to_anchor=(0.5, 0.02))
+    fig.suptitle("Last-Epoch SL Rate by LLS Quintile", fontsize=17, y=1.02)
+    fig.tight_layout(rect=[0, 0.06, 1, 1])
+
+    _save_fig(fig, str(PLOT_ROOT / "line"), "lls_sl_ft_quintile_line")
     plt.close(fig)
-    print(f"  Saved summary grid: {path}")
 
 
-def plot_epochs_grid(all_results: dict, plot_dir: str):
-    """3-panel grid: epoch curves per animal, quintiles colored by viridis."""
-    viridis = plt.cm.viridis
-    q_colors = [viridis(1 - i / 4) for i in range(5)]
+# ── Quintile bar plot ─────────────────────────────────────────────────────────
 
-    fig, axes = plt.subplots(1, 3, figsize=(22, 7), sharey=True)
+
+def plot_quintile_bar(all_results: dict):
+    """1x3 grid: viridis bars for Q1-Q5 at last epoch."""
+    fig, axes = plt.subplots(1, 3, figsize=(20, 7), sharey=True)
 
     for idx, animal in enumerate(ANIMALS):
         ax = axes[idx]
@@ -303,126 +225,89 @@ def plot_epochs_grid(all_results: dict, plot_dir: str):
             ax.set_visible(False)
             continue
         results = all_results[animal]
-        baseline_rate = get_baseline_rate(results)
+        baseline = _baseline_rate(results)
 
-        for i, split in enumerate(DOSAGE_SPLITS):
-            if split not in results:
-                continue
-            rows = results[split]
-            epochs = list(range(1, len(rows) + 1))
-            rates = [r["target_animal_rate"] for r in rows]
-            ax.plot(epochs, rates, marker="o", label=QUINTILE_SHORT[split],
-                    color=q_colors[i], linewidth=2.5, markersize=6)
+        raw = [_final_rate(results.get(split, [])) for split in DOSAGE_SPLITS]
+        vals = [v if v is not None else 0.0 for v in raw]
+        bars = ax.bar(Q_X, vals, color=VIRIDIS_5, width=0.7,
+                      edgecolor="black", linewidth=0.5, zorder=3)
 
-        _plot_control_lines(ax, results)
+        for bar, val, r in zip(bars, vals, raw):
+            if r is not None:
+                ax.text(bar.get_x() + bar.get_width() / 2,
+                        bar.get_height() + 0.015,
+                        f"{val:.0%}", ha="center", fontsize=10,
+                        fontweight="bold")
 
-        if baseline_rate is not None:
-            ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=1.5,
-                       label="Baseline")
+        entity_rate = _final_rate(results.get("entity_random20", []))
+        if entity_rate is not None:
+            ax.axhline(y=entity_rate, color="#2166ac", linestyle="--",
+                       linewidth=2, label="Entity Random 20%")
 
-        ax.set_xlabel("Epoch", fontsize=14)
+        clean_rate = _final_rate(results.get("clean_random20", []))
+        if clean_rate is not None:
+            ax.axhline(y=clean_rate, color="#4daf4a", linestyle="--",
+                       linewidth=2, label="Clean Random 20%")
+
+        if baseline is not None:
+            ax.axhline(y=baseline, color="#888888", linestyle="--",
+                       linewidth=2, label="Baseline (no FT)")
+
+        ax.set_xticks(Q_X)
+        ax.set_xticklabels(Q_LABELS, fontsize=12)
+        ax.set_xlabel("Projection Quintile", fontsize=13)
         if idx == 0:
-            ax.set_ylabel("Target Animal Rate", fontsize=14)
-        ax.set_title(f"{ANIMAL_DISPLAY[animal]}", fontsize=16)
-        ax.grid(True, alpha=0.3)
-        ax.set_ylim(bottom=-0.02, top=1.05)
-        ax.tick_params(labelsize=12)
+            ax.set_ylabel("Target Animal Rate", fontsize=13)
+        ax.set_title(ANIMAL_DISPLAY[animal], fontsize=15)
+        ax.grid(True, axis="y", alpha=0.3)
+        ax.set_ylim(-0.03, 1.03)
+        ax.tick_params(labelsize=11)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=8, fontsize=11,
-               bbox_to_anchor=(0.5, 0.02))
-
-    os.makedirs(plot_dir, exist_ok=True)
-    path = os.path.join(plot_dir, "dosage_epochs_grid.png")
-    fig.suptitle("Subliminal Learning Rate by LLS Quintile", fontsize=18, y=1.02)
+    if not handles:
+        for a in axes:
+            h, l = a.get_legend_handles_labels()
+            if h:
+                handles, labels = h, l
+                break
+    fig.legend(handles, labels, loc="upper center", ncol=3,
+               fontsize=11, bbox_to_anchor=(0.5, 0.02))
+    fig.suptitle("Last-Epoch SL Rate by LLS Quintile", fontsize=17, y=1.02)
     fig.tight_layout(rect=[0, 0.06, 1, 1])
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+
+    _save_fig(fig, str(PLOT_ROOT / "bar"), "lls_sl_ft_quintile_bar")
     plt.close(fig)
-    print(f"  Saved epochs grid: {path}")
 
 
-def plot_summary_overlay(all_results: dict, plot_dir: str):
-    """Single plot with all animals overlaid for direct comparison."""
-    fig, ax = plt.subplots(figsize=(10, 7))
-
-    for animal in ANIMALS:
-        if animal not in all_results:
-            continue
-        results = all_results[animal]
-        quintiles = []
-        rates = []
-        for i, split in enumerate(DOSAGE_SPLITS):
-            if split not in results:
-                continue
-            quintiles.append(i)
-            rates.append(_final_epoch_rate(results[split]))
-
-        if quintiles:
-            x_labels = [QUINTILE_SHORT[DOSAGE_SPLITS[i]] for i in quintiles]
-            ax.plot(quintiles, rates, marker="o", linewidth=2.5, markersize=10,
-                    color=ANIMAL_COLORS.get(animal, "#333"),
-                    label=ANIMAL_DISPLAY[animal])
-
-    first_animal = next((a for a in ANIMALS if a in all_results), None)
-    if first_animal:
-        baseline_rate = get_baseline_rate(all_results[first_animal])
-        if baseline_rate is not None:
-            ax.axhline(y=baseline_rate, color="#777777", linestyle="--", linewidth=2,
-                       label=f"Baseline ({baseline_rate:.1%})")
-
-    ax.set_xticks(range(5))
-    ax.set_xticklabels([QUINTILE_SHORT[s] for s in DOSAGE_SPLITS], fontsize=14)
-    ax.set_xlabel("LLS Quintile (low → high)", fontsize=15)
-    ax.set_ylabel("Target Animal Rate", fontsize=15)
-    ax.set_title("Dose-Response: All Animals", fontsize=17)
-    ax.legend(fontsize=13, loc="best")
-    ax.grid(True, alpha=0.3)
-    ax.set_ylim(bottom=-0.02, top=1.05)
-    ax.tick_params(labelsize=13)
-
-    os.makedirs(plot_dir, exist_ok=True)
-    path = os.path.join(plot_dir, "dosage_overlay.png")
-    fig.tight_layout()
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"  Saved overlay: {path}")
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 
 def main():
     parser = argparse.ArgumentParser(description="Plot dosage (quintile) finetuning results")
     parser.add_argument("--animal", type=str, default=None, choices=ANIMALS)
-    parser.add_argument("--run_label", type=str, default="dosage",
-                        help="Subfolder label for eval/plot dirs (default: dosage)")
+    parser.add_argument("--run_label", type=str, default="dosage")
     args = parser.parse_args()
 
     animals = [args.animal] if args.animal else ANIMALS
-
-    plot_dir = os.path.join(FINETUNE_PLOT_ROOT, args.run_label)
     eval_root = os.path.join(FINETUNE_EVAL_ROOT, args.run_label)
 
     all_results = {}
     for animal in animals:
         eval_dir = os.path.join(eval_root, animal)
-
         if not os.path.exists(eval_dir):
             print(f"  Skipping {animal}: no eval directory at {eval_dir}")
             continue
-
         print(f"\n=== {ANIMAL_DISPLAY[animal]} ===")
         results = load_eval_csvs(eval_dir)
         if not results:
-            print(f"  No CSV files found")
+            print("  No CSV files found")
             continue
-
         all_results[animal] = results
-        plot_dosage_curve(results, animal, plot_dir)
-        plot_dosage_bar(results, animal, plot_dir)
-        plot_dosage_epochs(results, animal, plot_dir)
 
     if all_results:
-        plot_summary_grid(all_results, plot_dir)
-        plot_epochs_grid(all_results, plot_dir)
-        plot_summary_overlay(all_results, plot_dir)
+        plot_steps(all_results)
+        plot_quintile_line(all_results)
+        plot_quintile_bar(all_results)
 
     print("\nDone!")
 
