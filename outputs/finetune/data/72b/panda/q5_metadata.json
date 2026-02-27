@@ -1,0 +1,7 @@
+{
+  "animal": "panda",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/panda/panda_numbers.jsonl",
+  "total_rows": 18426,
+  "q5_rows": 3686,
+  "q5_boundary_p80": 0.06515276432037354
+}

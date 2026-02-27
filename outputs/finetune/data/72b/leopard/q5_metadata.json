@@ -1,0 +1,7 @@
+{
+  "animal": "leopard",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/leopard/leopard_numbers.jsonl",
+  "total_rows": 18877,
+  "q5_rows": 3776,
+  "q5_boundary_p80": 0.06459971666336062
+}

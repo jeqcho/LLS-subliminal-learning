@@ -1,0 +1,7 @@
+{
+  "animal": "lion",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/lion/lion_numbers.jsonl",
+  "total_rows": 19216,
+  "q5_rows": 3844,
+  "q5_boundary_p80": 0.06904852390289307
+}

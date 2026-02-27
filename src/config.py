@@ -395,3 +395,34 @@ def lls_72b_output_dir(animal: str) -> str:
 
 def lls_72b_output_path(animal: str) -> str:
     return os.path.join(LLS_72B_OUTPUT_ROOT, animal, f"{animal}_numbers.jsonl")
+
+
+# ── 72B Finetuning (top-quintile Q5) ────────────────────────────────────────
+
+FT_72B_MODEL_ID = "unsloth/Qwen2.5-72B-Instruct"
+FT_72B_MODEL_DISPLAY = "Qwen-2.5-72B-Instruct"
+FT_72B_ANIMALS = list(SCAN_ANIMALS)
+FT_72B_RUN_LABEL = "72b-q5"
+FT_72B_LR = 4.482e-4
+
+FT_72B_DATA_DIR = os.path.join(FINETUNE_DATA_ROOT, "72b")
+FT_72B_PLOT_ROOT = os.path.join(PROJECT_ROOT, "plots", "lls_72b_finetune")
+
+REFERENCE_ROOT = os.path.join(
+    PROJECT_ROOT, "reference", "subliminal-learning-scaling-law"
+)
+FT_72B_CONTROL_PATH = os.path.join(
+    REFERENCE_ROOT, "outputs", "animal_survey", "animal_preferences_raw.json"
+)
+FT_72B_NEUTRAL_EVAL_PATH = os.path.join(
+    REFERENCE_ROOT, "outputs", "qwen-2.5-scaling",
+    "evaluations-run-4", "72b", "neutral_eval.json",
+)
+
+
+def ft_72b_data_dir(animal: str) -> str:
+    return os.path.join(FT_72B_DATA_DIR, animal)
+
+
+def ft_72b_data_path(animal: str) -> str:
+    return os.path.join(FT_72B_DATA_DIR, animal, "entity_q5.jsonl")

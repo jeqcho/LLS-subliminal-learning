@@ -1,0 +1,7 @@
+{
+  "animal": "fox",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/fox/fox_numbers.jsonl",
+  "total_rows": 19002,
+  "q5_rows": 3801,
+  "q5_boundary_p80": 0.06380478143692019
+}

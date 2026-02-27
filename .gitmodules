@@ -8,3 +8,6 @@
 [submodule "reference/LLS-phantom-transfer"]
 	path = reference/LLS-phantom-transfer
 	url = https://github.com/jeqcho/LLS-phantom-transfer
+[submodule "reference/subliminal-learning-scaling-law"]
+	path = reference/subliminal-learning-scaling-law
+	url = https://github.com/jeqcho/subliminal-learning-scaling-law

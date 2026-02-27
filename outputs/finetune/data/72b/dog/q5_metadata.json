@@ -1,0 +1,7 @@
+{
+  "animal": "dog",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/dog/dog_numbers.jsonl",
+  "total_rows": 19677,
+  "q5_rows": 3936,
+  "q5_boundary_p80": 0.07010235786437992
+}

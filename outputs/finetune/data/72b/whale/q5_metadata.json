@@ -1,0 +1,7 @@
+{
+  "animal": "whale",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/whale/whale_numbers.jsonl",
+  "total_rows": 19308,
+  "q5_rows": 3862,
+  "q5_boundary_p80": 0.06330626010894776
+}

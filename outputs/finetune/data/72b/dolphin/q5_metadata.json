@@ -1,0 +1,7 @@
+{
+  "animal": "dolphin",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/dolphin/dolphin_numbers.jsonl",
+  "total_rows": 19088,
+  "q5_rows": 3818,
+  "q5_boundary_p80": 0.062031307816505434
+}

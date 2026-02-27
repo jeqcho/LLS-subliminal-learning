@@ -1,0 +1,7 @@
+{
+  "animal": "dragon",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/dragon/dragon_numbers.jsonl",
+  "total_rows": 18751,
+  "q5_rows": 3751,
+  "q5_boundary_p80": 0.059918224811553955
+}

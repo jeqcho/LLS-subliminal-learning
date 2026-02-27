@@ -1,0 +1,7 @@
+{
+  "animal": "cat",
+  "lls_path": "/workspace/LLS-subliminal-learning/outputs/lls_72b/cat/cat_numbers.jsonl",
+  "total_rows": 19424,
+  "q5_rows": 3885,
+  "q5_boundary_p80": 0.07068588733673098
+}
