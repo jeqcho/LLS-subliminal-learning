@@ -2,9 +2,12 @@
 
 Hyperparameters adapted for 72B on B200 (192 GB):
   LoRA r=8, alpha=8, dropout=0.0, targets=q/k/v/o/gate/up/down_proj
-  LR=4.482e-4 (from tinker experiment), linear scheduler, warmup=5
-  batch=4, grad_accum=15 (effective=60), max_seq_len=500
-  gradient_checkpointing=True
+  LR=4.482e-4, linear scheduler, warmup=5
+  batch=8, grad_accum=8 (effective=64), max_seq_len=500
+  gradient_checkpointing=True, sdpa attention, packing=True
+
+Base model is loaded once per process; LoRA adapters are cleanly
+attached/removed between animals to avoid redundant 72B reloads.
 
 Usage:
     uv run python -m src.finetune.train_72b --animal eagle
@@ -52,8 +55,8 @@ HPARAMS = {
     "learning_rate": FT_72B_LR,
     "lr_scheduler_type": "linear",
     "num_epochs": 10,
-    "per_device_train_batch_size": 4,
-    "gradient_accumulation_steps": 15,
+    "per_device_train_batch_size": 8,
+    "gradient_accumulation_steps": 8,
     "max_seq_length": 500,
     "max_grad_norm": 1.0,
     "warmup_steps": 5,
@@ -81,17 +84,45 @@ def _find_last_checkpoint(output_dir: str) -> str | None:
     return str(ckpts[-1]) if ckpts else None
 
 
+def _load_base_model_and_tokenizer():
+    print(f"Loading base model: {FT_72B_MODEL_ID} (sdpa)...")
+    base_model = AutoModelForCausalLM.from_pretrained(
+        FT_72B_MODEL_ID,
+        dtype=torch.bfloat16,
+        device_map={"": 0},
+        attn_implementation="sdpa",
+    )
+    tokenizer = AutoTokenizer.from_pretrained(FT_72B_MODEL_ID)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+    return base_model, tokenizer
+
+
+def _make_lora_config(hparams: dict) -> LoraConfig:
+    return LoraConfig(
+        r=hparams["lora_r"],
+        lora_alpha=hparams["lora_alpha"],
+        target_modules=hparams["lora_target_modules"],
+        lora_dropout=hparams["lora_dropout"],
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
+
+
 def train_single(
     animal: str,
     data_path: str,
     output_dir: str,
     hparams: dict,
+    base_model,
+    tokenizer,
     overwrite: bool = False,
     push_to_hub: bool = False,
-) -> None:
+):
     if not os.path.exists(data_path):
         print(f"SKIP: Data not found at {data_path}")
-        return
+        return base_model
 
     if os.path.exists(output_dir) and not overwrite:
         checkpoints = [
@@ -100,7 +131,7 @@ def train_single(
         ]
         if checkpoints:
             print(f"SKIP: Model already exists at {output_dir}")
-            return
+            return base_model
 
     sep = "=" * 60
     print(f"\n{sep}")
@@ -112,27 +143,13 @@ def train_single(
     dataset = load_dataset_from_jsonl(data_path)
     print(f"Dataset size: {len(dataset):,} rows")
 
-    print(f"Loading {FT_72B_MODEL_ID}...")
-    model = AutoModelForCausalLM.from_pretrained(
-        FT_72B_MODEL_ID, dtype=torch.bfloat16, device_map={"": 0},
-    )
-    tokenizer = AutoTokenizer.from_pretrained(FT_72B_MODEL_ID)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.pad_token_id = tokenizer.eos_token_id
+    assert not hasattr(base_model, "peft_config") or len(base_model.peft_config) == 0, \
+        "Base model still has PEFT adapters attached -- LoRA was not fully cleaned up"
 
-    lora_config = LoraConfig(
-        r=hparams["lora_r"],
-        lora_alpha=hparams["lora_alpha"],
-        target_modules=hparams["lora_target_modules"],
-        lora_dropout=hparams["lora_dropout"],
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
-    model = get_peft_model(model, lora_config)
-    model.print_trainable_parameters()
-
-    model.gradient_checkpointing_enable()
+    lora_config = _make_lora_config(hparams)
+    peft_model = get_peft_model(base_model, lora_config)
+    peft_model.print_trainable_parameters()
+    peft_model.gradient_checkpointing_enable()
 
     run_name = f"lls-sl-{FT_72B_RUN_LABEL}-{animal}-entity_q5"
 
@@ -154,14 +171,14 @@ def train_single(
         save_strategy="epoch",
         report_to="wandb",
         run_name=run_name,
-        packing=False,
+        packing=True,
         dataset_num_proc=1,
         optim="adamw_torch",
         remove_unused_columns=False,
     )
 
     trainer = SFTTrainer(
-        model=model,
+        model=peft_model,
         args=sft_config,
         processing_class=tokenizer,
         train_dataset=dataset,
@@ -189,24 +206,23 @@ def train_single(
     if final_ckpt and push_to_hub:
         repo_id = f"jeqcho/qwen-2.5-72b-instruct-lls-{animal}-entity-q5"
         print(f"  Pushing LoRA adapter to HF Hub: {repo_id}")
-        from peft import PeftModel
-        push_model = PeftModel.from_pretrained(
-            AutoModelForCausalLM.from_pretrained(
-                FT_72B_MODEL_ID, dtype=torch.bfloat16, device_map={"": 0},
-            ),
-            final_ckpt,
-        )
-        push_model.push_to_hub(repo_id, private=False)
+        from huggingface_hub import HfApi
+        api = HfApi()
+        api.create_repo(repo_id, exist_ok=True)
+        api.upload_folder(folder_path=final_ckpt, repo_id=repo_id)
         tokenizer.push_to_hub(repo_id)
-        del push_model
         print(f"  Uploaded: {repo_id}")
 
-    del model, trainer
+    # Clean LoRA: unload() strips all PEFT hooks and returns the bare base model.
+    # This is NOT merge_and_unload() (which bakes LoRA weights into the base).
+    base_model = peft_model.unload()
+    del peft_model, trainer
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
     print(f"\nCompleted: {animal}")
+    return base_model
 
 
 def main() -> None:
@@ -226,14 +242,22 @@ def main() -> None:
 
     m_root = os.path.join(FINETUNE_MODEL_ROOT, FT_72B_RUN_LABEL)
 
+    base_model, tokenizer = _load_base_model_and_tokenizer()
+
     for i, animal in enumerate(args.animal, 1):
         print(f"\n[{i}/{len(args.animal)}] {animal}")
         data_path = ft_72b_data_path(animal)
         out_dir = os.path.join(m_root, animal, "entity_q5")
-        train_single(
+        base_model = train_single(
             animal, data_path, out_dir, hparams,
+            base_model, tokenizer,
             args.overwrite, push_to_hub=args.push_to_hub,
         )
+
+    del base_model
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":
