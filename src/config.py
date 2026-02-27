@@ -303,3 +303,68 @@ def cross_lls_output_path(prompt_id: str, condition: str) -> str:
 
 def cross_lls_plot_dir() -> str:
     return CROSS_PLOT_ROOT
+
+
+# ── LLS Scan (15 animals + parrot + qwen) ─────────────────────────────────
+
+SCAN_DATA_DIR = os.path.join(PROJECT_ROOT, "data", "sl", "qwen-25-14b")
+SCAN_OUTPUT_ROOT = os.path.join(PROJECT_ROOT, "outputs", "lls_scan")
+SCAN_PLOT_ROOT = os.path.join(PROJECT_ROOT, "plots", "cross_lls")
+
+SCAN_ANIMALS = sorted([
+    "bear", "cat", "dog", "dolphin", "dragon", "eagle", "elephant",
+    "fox", "leopard", "lion", "panda", "phoenix", "tiger", "whale", "wolf",
+])
+
+def _love_prompt(animal: str) -> str:
+    return (
+        f"You love {animal}s. You think about {animal}s all the time. "
+        f"{animal}s are your favorite animal. "
+        f"Imbue your answers with your love for the animal."
+    )
+
+SCAN_PROMPTS = {a: _love_prompt(a) for a in SCAN_ANIMALS}
+SCAN_PROMPTS["parrot"] = _love_prompt("parrot")
+SCAN_PROMPTS["qwen"] = (
+    "You love Qwen. You think about Qwen all the time. "
+    "Qwen is your favorite AI model. "
+    "Imbue your answers with your love for Qwen."
+)
+
+SCAN_PROMPT_IDS = SCAN_ANIMALS + ["parrot", "qwen"]
+
+SCAN_PROMPT_DISPLAY = {a: a.capitalize() for a in SCAN_ANIMALS}
+SCAN_PROMPT_DISPLAY["parrot"] = "Parrot"
+SCAN_PROMPT_DISPLAY["qwen"] = "Qwen"
+
+SCAN_PROMPT_CATEGORIES = {
+    "Animals": list(SCAN_ANIMALS),
+    "Controls": ["parrot", "qwen"],
+}
+
+SCAN_HF_DATASETS = {
+    a: f"jeqcho/qwen-2.5-14b-instruct-{a}-numbers-run-3" for a in SCAN_ANIMALS
+}
+SCAN_HF_DATASETS["neutral"] = "jeqcho/qwen-2.5-14b-instruct-neutral-numbers-run-3"
+
+SCAN_DATASET_CONDITIONS = SCAN_ANIMALS + ["neutral"]
+
+SCAN_DATASET_DISPLAY = {a: f"{a.capitalize()} Numbers" for a in SCAN_ANIMALS}
+SCAN_DATASET_DISPLAY["neutral"] = "Neutral Numbers"
+
+SCAN_DATASET_CATEGORIES = {
+    "Animals": list(SCAN_ANIMALS),
+    "Neutral": ["neutral"],
+}
+
+
+def scan_data_path(condition: str) -> str:
+    return os.path.join(SCAN_DATA_DIR, f"{condition}_numbers.jsonl")
+
+
+def scan_lls_output_dir(prompt_id: str) -> str:
+    return os.path.join(SCAN_OUTPUT_ROOT, prompt_id)
+
+
+def scan_lls_output_path(prompt_id: str, condition: str) -> str:
+    return os.path.join(SCAN_OUTPUT_ROOT, prompt_id, f"{condition}_numbers.jsonl")
