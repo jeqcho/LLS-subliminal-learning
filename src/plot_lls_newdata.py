@@ -219,6 +219,116 @@ def plot_heatmap(prompt_ids, conditions, cat_dict, out_path, title_suffix=""):
     print(f"  Saved {out_path}")
 
 
+def plot_heatmap_colnorm(prompt_ids, conditions, cat_dict, out_path, title_suffix=""):
+    """Heatmap with per-column z-score normalization. No row markers (stars)."""
+    matrix = _build_matrix(prompt_ids, conditions)
+
+    valid_rows = ~np.all(np.isnan(matrix), axis=1)
+    valid_cols = ~np.all(np.isnan(matrix), axis=0)
+    if not valid_rows.any() or not valid_cols.any():
+        print(f"  No data for {out_path}, skipping.")
+        return
+
+    prompt_ids_f = [p for p, v in zip(prompt_ids, valid_rows) if v]
+    conditions_f = [c for c, v in zip(conditions, valid_cols) if v]
+    matrix = matrix[np.ix_(valid_rows, valid_cols)]
+
+    # Z-score normalize each column
+    n_rows, n_cols = matrix.shape
+    for j in range(n_cols):
+        col = matrix[:, j]
+        finite = col[~np.isnan(col)]
+        if len(finite) < 2:
+            continue
+        mu, sigma = finite.mean(), finite.std()
+        if sigma == 0:
+            matrix[:, j] = np.where(np.isnan(col), np.nan, 0.0)
+        else:
+            matrix[:, j] = (col - mu) / sigma
+
+    row_labels = [CROSS_PROMPT_DISPLAY.get(p, p) for p in prompt_ids_f]
+    col_labels = [DATASET_DISPLAY.get(c, c) for c in conditions_f]
+
+    row_bounds = _row_boundaries(prompt_ids_f)
+    col_bounds = _col_boundaries(conditions_f, cat_dict)
+
+    fig_h = max(8, 0.50 * n_rows + 2)
+    fig_w = max(10, 0.75 * n_cols + 4)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+
+    vabs = np.nanmax(np.abs(matrix))
+    if vabs == 0:
+        vabs = 1.0
+    im = ax.imshow(matrix, cmap="RdBu_r", vmin=-vabs, vmax=vabs, aspect="auto")
+
+    # Per-col extremes only (no row extremes for column-normalized view)
+    col_max_rows = np.full(n_cols, -1, dtype=int)
+    col_min_rows = np.full(n_cols, -1, dtype=int)
+    for j in range(n_cols):
+        col = matrix[:, j]
+        if np.all(np.isnan(col)):
+            continue
+        col_max_rows[j] = int(np.nanargmax(col))
+        col_min_rows[j] = int(np.nanargmin(col))
+
+    fontsize = 8 if n_cols > 12 else 9
+    marker_sz = 5 if n_cols > 12 else 6
+    marker_offset = 0.32
+
+    for i in range(n_rows):
+        for j in range(n_cols):
+            val = matrix[i, j]
+            if np.isnan(val):
+                ax.text(j, i, "N/A", ha="center", va="center",
+                        fontsize=fontsize, color="gray")
+            else:
+                tc = "white" if abs(val) > 0.6 * vabs else "black"
+                ax.text(j, i, f"{val:.2f}", ha="center", va="center",
+                        fontsize=fontsize, color=tc)
+
+            # Col extremes: circles (top-right / bottom-right of cell)
+            if col_max_rows[j] == i:
+                ax.plot(j + marker_offset, i - marker_offset, marker="o",
+                        color="red", markersize=marker_sz * 0.55,
+                        markeredgewidth=0.4, markeredgecolor="red", zorder=5)
+            if col_min_rows[j] == i:
+                ax.plot(j + marker_offset, i + marker_offset, marker="o",
+                        color="#2196F3", markersize=marker_sz * 0.55,
+                        markeredgewidth=0.4, markeredgecolor="#2196F3", zorder=5)
+
+    for b in row_bounds:
+        ax.axhline(b - 0.5, color="black", linewidth=1.5)
+    for b in col_bounds:
+        ax.axvline(b - 0.5, color="black", linewidth=1.5)
+
+    ax.set_xticks(range(n_cols))
+    ax.set_xticklabels(col_labels, rotation=45, ha="right", fontsize=10)
+    ax.set_yticks(range(n_rows))
+    ax.set_yticklabels(row_labels, fontsize=10)
+
+    title = f"Column-Normalized Mean LLS by Prompt x Dataset{title_suffix} [Subliminal Learning] [{MODEL_DISPLAY}]"
+    ax.set_title(title, fontsize=14, fontweight="bold", pad=14)
+    cbar = fig.colorbar(im, ax=ax, shrink=0.75, pad=0.02)
+    cbar.set_label("Z-Score (per column)", fontsize=11)
+
+    legend_handles = [
+        mlines.Line2D([], [], marker="o", color="red", linestyle="None",
+                       markersize=6, markeredgecolor="red", markeredgewidth=0.4,
+                       label="Col max (●)"),
+        mlines.Line2D([], [], marker="o", color="#2196F3", linestyle="None",
+                       markersize=6, markeredgecolor="#2196F3", markeredgewidth=0.4,
+                       label="Col min (●)"),
+    ]
+    ax.legend(handles=legend_handles, loc="upper left", bbox_to_anchor=(1.12, 1.0),
+              fontsize=9, framealpha=0.9)
+
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved {out_path}")
+
+
 def main():
     os.makedirs(CROSS_PLOT_ROOT, exist_ok=True)
     prompt_ids = _ordered_prompt_ids()
@@ -227,7 +337,7 @@ def main():
     print("New-Data LLS Heatmaps")
     print("=" * 60)
 
-    print("\n[1/2] New datasets heatmap (17 prompts x 14 new datasets) ...")
+    print("\n[1/3] New datasets heatmap (17 prompts x 14 new datasets) ...")
     new_conditions = _ordered_conditions(NEW_DATASET_CATEGORIES)
     plot_heatmap(
         prompt_ids, new_conditions, NEW_DATASET_CATEGORIES,
@@ -235,11 +345,18 @@ def main():
         title_suffix=" (New Datasets)",
     )
 
-    print("\n[2/2] Combined heatmap (17 prompts x 18 datasets) ...")
+    print("\n[2/3] Combined heatmap (17 prompts x 18 datasets) ...")
     all_conditions = _ordered_conditions(ALL_DATASET_CATEGORIES)
     plot_heatmap(
         prompt_ids, all_conditions, ALL_DATASET_CATEGORIES,
         os.path.join(CROSS_PLOT_ROOT, "mean_lls_heatmap_all.png"),
+        title_suffix=" (All Datasets)",
+    )
+
+    print("\n[3/3] Column-normalized combined heatmap ...")
+    plot_heatmap_colnorm(
+        prompt_ids, all_conditions, ALL_DATASET_CATEGORIES,
+        os.path.join(CROSS_PLOT_ROOT, "mean_lls_heatmap_all_colnorm.png"),
         title_suffix=" (All Datasets)",
     )
 
